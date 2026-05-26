@@ -23,8 +23,14 @@ mv mtk-clone mtk-openwrt-feeds
 
 ### tx_power check Ivan Mironov's patch - for defective BE14 boards with defective eeprom flash
 #\cp -r my_files/100-wifi-mt76-mt7996-Use-tx_power-from-default-fw-if-EEP.patch mtk-openwrt-feeds/autobuild/unified/filogic/mac80211/25.12/files/package/kernel/mt76/patches
+# === ДОБАВЛЯЕМ MRHAAV FEED ДЛЯ FIBOCOM FM350-GL ===
+
 
 cd openwrt
+
+# === ДОБАВЛЯЕМ MRHAAV FEED ДЛЯ FIBOCOM FM350-GL ===
+echo "src-git mrhaav https://github.com/mrhaav/openwrt-packages.git;main" >> feeds.conf.default
+
 bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x_rfb-wifi7_nic prepare
 
 
