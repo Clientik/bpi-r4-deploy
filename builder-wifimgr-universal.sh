@@ -59,6 +59,10 @@ mkdir -p files/etc/uci-defaults
 chmod +x files/etc/uci-defaults/99-set-hostname
 
 ./scripts/feeds update -a
+#Remove 350 umbim old
+rm -rf package/feeds/mrhaav/umbim
+rm -rf package/feeds/mrhaav/uqmi
+
 ./scripts/feeds install -a
 
 \cp ../my_files/fit.sh package/utils/fitblk/files/fit.sh
