@@ -23,7 +23,6 @@ mv mtk-clone mtk-openwrt-feeds
 
 ### tx_power check Ivan Mironov's patch - for defective BE14 boards with defective eeprom flash
 #\cp -r my_files/100-wifi-mt76-mt7996-Use-tx_power-from-default-fw-if-EEP.patch mtk-openwrt-feeds/autobuild/unified/filogic/mac80211/25.12/files/package/kernel/mt76/patches
-# === ДОБАВЛЯЕМ MRHAAV FEED ДЛЯ FIBOCOM FM350-GL ===
 
 
 cd openwrt
@@ -59,10 +58,6 @@ mkdir -p files/etc/uci-defaults
 chmod +x files/etc/uci-defaults/99-set-hostname
 
 ./scripts/feeds update -a
-#Remove 350 umbim old
-rm -rf package/feeds/mrhaav/umbim
-rm -rf package/feeds/mrhaav/uqmi
-
 ./scripts/feeds install -a
 
 \cp ../my_files/fit.sh package/utils/fitblk/files/fit.sh
@@ -72,6 +67,12 @@ chmod -R 755 package/network/utils/uqmi/files/lib/netifd/proto
 chmod -R 755 feeds/luci/applications/luci-app-modemdata/root
 chmod -R 755 feeds/luci/applications/luci-app-sms-tool-js/root
 chmod -R 755 feeds/packages/utils/modemdata/files/usr/share
+
+# === Кастомные фиды (низкий приоритет) ===
+echo "src-git mrhaav https://github.com/mrhaav/openwrt-packages.git;main" >> feeds.conf.default
+./scripts/feeds update mrhaav
+./scripts/feeds install -a -p mrhaav
+# =========================================
 
 \cp -r ../configs/my_defconfig-wifimgr-universal .config
 make defconfig
