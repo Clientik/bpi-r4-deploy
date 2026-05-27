@@ -27,9 +27,6 @@ mv mtk-clone mtk-openwrt-feeds
 
 cd openwrt
 
-# === ДОБАВЛЯЕМ MRHAAV FEED ДЛЯ FIBOCOM FM350-GL ===
-echo "src-git mrhaav https://github.com/mrhaav/openwrt-packages.git;main" >> feeds.conf.default
-
 bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x_rfb-wifi7_nic prepare
 
 
