@@ -507,10 +507,5 @@ CONFIG_TARGET_DEVICE_PACKAGES_mediatek_filogic_DEVICE_bananapi_bpi-r4-poe-8gb=""
 # === Fibocom FM350-GL & Modem Manager (Missing in your defconfig) ===
 CONFIG_PACKAGE_atc-fib-fm350_gl=y
 CONFIG_PACKAGE_luci-proto-atc=y
-CONFIG_PACKAGE_comgt-directip=y
-CONFIG_PACKAGE_modemmanager=y
-CONFIG_MODEMMANAGER_WITH_MBIM=y
-CONFIG_MODEMMANAGER_WITH_NETIFD=y
-CONFIG_MODEMMANAGER_WITH_QMI=y
-CONFIG_MODEMMANAGER_WITH_QRTR=y
-CONFIG_PACKAGE_luci-proto-modemmanager=y
+CONFIG_PACKAGE_kmod-nft-compat=y
+CONFIG_PACKAGE_mwan3=y 
