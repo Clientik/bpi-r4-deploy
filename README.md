@@ -406,28 +406,23 @@ The M.2 Key-B slot (CN16) connects to both PCIe2 and USB lines. The FM350-GL cho
 
 By default this build disables PCIe2 so the modem works out of the box in USB/RNDIS mode without any manual setup.
 
-### Toggle PCIe2 without rebuilding
+### Toggle PCIe2 via U-Boot console (serial, interrupt boot with any key)
 
-**Disable PCIe2 (default — FM350-GL in USB/RNDIS mode):**
-```sh
-fw_setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2"
-reboot
+**Enable PCIe2 (FM350-GL switches to MBIM/PCIe mode):**
 ```
-
-**Enable PCIe2 (FM350-GL in MBIM/PCIe mode):**
-```sh
-fw_setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc"
-reboot
-```
-
-The setting persists across reboots. To toggle from U-Boot console (serial):
-```
-# Disable PCIe2:
-setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2"
+setenv bootconf_extra
 saveenv
+```
 
-# Enable PCIe2:
-setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc"
+**Disable PCIe2 again (FM350-GL back to USB/RNDIS mode) — SD:**
+```
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2
+saveenv
+```
+
+**Disable PCIe2 again — NAND:**
+```
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2
 saveenv
 ```
 

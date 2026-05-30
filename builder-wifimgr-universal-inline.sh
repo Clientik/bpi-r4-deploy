@@ -24,7 +24,6 @@ mv mtk-clone mtk-openwrt-feeds
 cd openwrt
 bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x_rfb-wifi7_nic prepare
 
-
 \cp -r ../my_files/453-w-add-bpi-r4-nvme-dtso.patch target/linux/mediatek/patches-6.12/
 \cp -r ../my_files/456-w-add-bpi-r4-nopcie2.patch target/linux/mediatek/patches-6.12/
 \cp -r ../my_files/457-w-add-bpi-r4-eth-leds.patch target/linux/mediatek/patches-6.12/
@@ -32,6 +31,7 @@ bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x
 \cp -r ../my_files/451-w-add-bpi-r4-nvme.patch package/boot/uboot-mediatek/patches/451-add-bpi-r4-nvme.patch
 \cp ../my_files/452-w-add-bpi-r4-nvme-rfb.patch package/boot/uboot-mediatek/patches/452-add-bpi-r4-nvme-rfb.patch
 \cp ../my_files/454-w-add-bpi-r4-nvme-env.patch package/boot/uboot-mediatek/patches/454-add-bpi-r4-nvme-env.patch
+\cp ../my_files/458-w-add-bpi-r4-nopcie2-env.patch package/boot/uboot-mediatek/patches/458-add-bpi-r4-nopcie2-env.patch
 \cp -r ../my_files/w-filogic-bpi-r4-universal.mk target/linux/mediatek/image/filogic.mk
 \cp ../my_files/arm-trusted-firmware-mediatek-Makefile package/boot/arm-trusted-firmware-mediatek/Makefile
 
@@ -50,10 +50,6 @@ echo "CONFIG_BLK_DEV_NVME=y" >> target/linux/mediatek/filogic/config-6.12
 mkdir -p files/etc/uci-defaults
 \cp -r ../my_files/99-set-hostname files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-set-hostname
-
-# FM350-GL: добавляет nopcie2 в bootconf_extra при первой загрузке
-\cp ../my_files/etc-files/uci-defaults/98-nopcie2-bootenv files/etc/uci-defaults/
-chmod +x files/etc/uci-defaults/98-nopcie2-bootenv
 
 # DDK modules must load before crypto-eip-inline (seq 60); pce loads at 50
 mkdir -p files/etc/modules.d

@@ -24,6 +24,7 @@ bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic prepare
 \cp -r ../my_files/451-w-add-bpi-r4-nvme.patch package/boot/uboot-mediatek/patches/451-add-bpi-r4-nvme.patch
 \cp ../my_files/452-w-add-bpi-r4-nvme-rfb.patch package/boot/uboot-mediatek/patches/452-add-bpi-r4-nvme-rfb.patch
 \cp ../my_files/454-w-add-bpi-r4-nvme-env.patch package/boot/uboot-mediatek/patches/454-add-bpi-r4-nvme-env.patch
+\cp ../my_files/458-w-add-bpi-r4-nopcie2-env.patch package/boot/uboot-mediatek/patches/458-add-bpi-r4-nopcie2-env.patch
 \cp -r ../my_files/w-sd-nand-mmc-nvme-ddr4-filogic.mk target/linux/mediatek/image/filogic.mk
 
 echo "CONFIG_BLK_DEV_NVME=y" >> target/linux/mediatek/filogic/config-6.12
@@ -39,10 +40,6 @@ echo "CONFIG_BLK_DEV_NVME=y" >> target/linux/mediatek/filogic/config-6.12
 mkdir -p files/etc/uci-defaults
 \cp -r ../my_files/99-set-hostname files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-set-hostname
-
-# FM350-GL: добавляет nopcie2 в bootconf_extra при первой загрузке
-\cp ../my_files/etc-files/uci-defaults/98-nopcie2-bootenv files/etc/uci-defaults/
-chmod +x files/etc/uci-defaults/98-nopcie2-bootenv
 
 # FM350-GL: blacklist PCIe T7xx driver вЂ” РјРѕРґРµРј СЂР°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ С‡РµСЂРµР· USB/RNDIS
 mkdir -p files/etc/modules.d
@@ -81,5 +78,4 @@ mkdir -p staging_dir/target-aarch64_cortex-a53_musl/image/
 \cp ../my_files/bootloader-mt7988-comb-8g/mt7988-sdmmc-comb-8g-bl31.bin staging_dir/target-aarch64_cortex-a53_musl/image/
 
 bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic build
-
 
