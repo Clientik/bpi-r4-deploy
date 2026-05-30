@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Очистить Windows пути из WSL PATH (содержат скобки/пробелы, ломают bash в make)
+export PATH=$(echo "$PATH" | tr ":" "\n" | grep -v "^/mnt/" | paste -sd:)
+
 # Validated source commits (v1.1.1, 2026-05-14):
 #   OpenWrt:  13ff2256e5dd9bc070f9a9c6a673bff4a9191837  (openwrt-25.12)
 #   MTK SDK:  dceb45f8cb945bce16f0e09f8d2cd974c9f0ce58  (tarball in repo-cache/mtk-openwrt-feeds.tar.gz)

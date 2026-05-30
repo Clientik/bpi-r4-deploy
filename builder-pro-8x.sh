@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Очистить Windows пути из WSL PATH (содержат скобки/пробелы, ломают bash в make)
+export PATH=$(echo "$PATH" | tr ":" "\n" | grep -v "^/mnt/" | paste -sd:)
+
 rm -rf openwrt
 # rm -rf mtk-openwrt-feeds
 
