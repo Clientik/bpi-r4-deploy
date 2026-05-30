@@ -106,6 +106,15 @@ jobs:
             repo-cache/mtk-openwrt-feeds.tar.gz
           key: repos-${{ env.OPENWRT_COMMIT }}-${{ env.MTK_COMMIT }}
 
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ github.ref_name }}-${{ github.run_number }}
+          restore-keys: |
+            ccache-${{ github.ref_name }}-
+            ccache-
+
       - name: Clone and cache repositories
         if: steps.cache-repos.outputs.cache-hit != 'true'
         run: |
