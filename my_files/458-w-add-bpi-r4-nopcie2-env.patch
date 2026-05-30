@@ -1,43 +1,41 @@
 --- a/defenvs/bananapi_bpi-r4_sdmmc_env
 +++ b/defenvs/bananapi_bpi-r4_sdmmc_env
-@@ -4,6 +4,7 @@
- bootconf=config-mt7988a-bananapi-bpi-r4
- bootconf_emmc=mt7988a-bananapi-bpi-r4-emmc
+@@ -5,3 +5,3 @@
  bootconf_sd=mt7988a-bananapi-bpi-r4-sd
+-bootconf_extra=
 +bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2
  bootdelay=0
 --- a/defenvs/bananapi_bpi-r4_snand_env
 +++ b/defenvs/bananapi_bpi-r4_snand_env
-@@ -4,6 +4,6 @@
+@@ -3,3 +3,3 @@
  bootconf=config-mt7988a-bananapi-bpi-r4
 -bootconf_extra=mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc
 +bootconf_extra=mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2
+ bootdelay=0
 --- a/defenvs/bananapi_bpi-r4_emmc_env
 +++ b/defenvs/bananapi_bpi-r4_emmc_env
-@@ -4,6 +4,6 @@
- bootconf=config-mt7988a-bananapi-bpi-r4
+@@ -4,3 +4,3 @@
  bootconf_emmc=mt7988a-bananapi-bpi-r4-emmc
 -bootconf_extra=
 +bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2
  bootdelay=0
 --- a/defenvs/bananapi_bpi-r4-poe_sdmmc_env
 +++ b/defenvs/bananapi_bpi-r4-poe_sdmmc_env
-@@ -4,6 +4,7 @@
- bootconf=config-mt7988a-bananapi-bpi-r4-poe
- bootconf_emmc=mt7988a-bananapi-bpi-r4-emmc
+@@ -5,3 +5,3 @@
  bootconf_sd=mt7988a-bananapi-bpi-r4-sd
+-bootconf_extra=
 +bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2
  bootdelay=0
 --- a/defenvs/bananapi_bpi-r4-poe_snand_env
 +++ b/defenvs/bananapi_bpi-r4-poe_snand_env
-@@ -4,6 +4,6 @@
+@@ -3,3 +3,3 @@
  bootconf=config-mt7988a-bananapi-bpi-r4-poe
 -bootconf_extra=mt7988a-bananapi-bpi-r4-emmc
 +bootconf_extra=mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2
+ bootdelay=0
 --- a/defenvs/bananapi_bpi-r4-poe_emmc_env
 +++ b/defenvs/bananapi_bpi-r4-poe_emmc_env
-@@ -4,6 +4,6 @@
- bootconf=config-mt7988a-bananapi-bpi-r4-poe
+@@ -4,3 +4,3 @@
  bootconf_emmc=mt7988a-bananapi-bpi-r4-emmc
 -bootconf_extra=
 +bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2
