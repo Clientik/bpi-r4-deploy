@@ -1,16 +1,10 @@
 --- /dev/null
 +++ b/arch/arm64/boot/dts/mediatek/mt7988a-bananapi-bpi-r4-leds.dtso
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,52 @@
 +// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 +/*
 + * Enable GbE port LEDs on BPI-R4 (MT7988 internal PHYs, ports 0-3).
-+ *
-+ * LEDs are HARDWARE-CONTROLLED by the PHY MAC — мигают по link+activity
-+ * на физическом уровне, независимо от ядра и HNAT offloading.
-+ * Packet counters (/sys/class/net/lanX/statistics) не нужны.
-+ *
-+ * После применения overlay появятся записи в /sys/class/leds/:
-+ *   green:lan-0, green:lan-1, green:lan-2, green:lan-3
++ * Hardware-controlled by PHY MAC: blink on link+activity, HNAT-safe.
 + */
 +/dts-v1/;
 +/plugin/;
@@ -20,7 +14,6 @@
 +	compatible = "bananapi,bpi-r4", "mediatek,mt7988a";
 +};
 +
-+/* Port 0 */
 +&gsw_phy0 {
 +	pinctrl-names = "gbe-led";
 +	pinctrl-0 = <&gbe0_led0_pins>;
@@ -31,7 +24,6 @@
 +	color = <LED_COLOR_ID_GREEN>;
 +};
 +
-+/* Port 1 */
 +&gsw_phy1 {
 +	pinctrl-names = "gbe-led";
 +	pinctrl-0 = <&gbe1_led0_pins>;
@@ -42,7 +34,6 @@
 +	color = <LED_COLOR_ID_GREEN>;
 +};
 +
-+/* Port 2 */
 +&gsw_phy2 {
 +	pinctrl-names = "gbe-led";
 +	pinctrl-0 = <&gbe2_led0_pins>;
@@ -53,7 +44,6 @@
 +	color = <LED_COLOR_ID_GREEN>;
 +};
 +
-+/* Port 3 */
 +&gsw_phy3 {
 +	pinctrl-names = "gbe-led";
 +	pinctrl-0 = <&gbe3_led0_pins>;
