@@ -3,8 +3,15 @@
 @@ -0,0 +1,14 @@
 +// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 +/*
-+ * Disable PCIe2 on BPI-R4 (M.2 Key-B slot) to force FM350-GL
-+ * into USB/RNDIS mode. USB lines of the slot remain active.
++ * ОПЦИОНАЛЬНЫЙ overlay: полное отключение PCIe2 (M.2 Key-B) на уровне DTS.
++ *
++ * По умолчанию НЕ используется — FM350-GL управляется через blacklist
++ * модуля mtk_t7xx (/etc/modules.d/mtk-t7xx-blacklist), что позволяет
++ * переключаться между USB/RNDIS и PCIe/MBIM без пересборки прошивки.
++ *
++ * Чтобы включить жёсткое отключение PCIe2 (необратимо без пересборки):
++ * добавить 'mt7988a-bananapi-bpi-r4-pcie2-disable' в DEVICE_DTS_OVERLAY
++ * в нужном filogic mk файле и раскомментировать cp в builder-скрипте.
 + */
 +/dts-v1/;
 +/plugin/;
