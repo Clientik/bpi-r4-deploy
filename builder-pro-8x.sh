@@ -58,10 +58,9 @@ mkdir -p files/etc/hotplug.d/usb
 \cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
 chmod +x files/etc/hotplug.d/usb/25-fm350-init
 
-# FM350-GL: mrhaav feed РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РџР•Р Р’Р«Рњ вЂ” РѕС„РёС†РёР°Р»СЊРЅС‹Р№ packages feed
-# РїРµСЂРµРєСЂС‹РІР°РµС‚ СѓСЃС‚Р°СЂРµРІС€РёРµ uqmi/umbim РёР· mrhaav, РЅРѕ atc-fib-fm350_gl
-# (СѓРЅРёРєР°Р»СЊРЅС‹Р№ РґР»СЏ mrhaav) РІСЃС‘ СЂР°РІРЅРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РёР· РЅРµРіРѕ
-sed -i '1s|^|src-git mrhaav https://github.com/mrhaav/openwrt-packages.git\n|' feeds.conf.default
+# FM350-GL: atc-fib-fm350_gl подключается локально (без внешних feed)
+# Это исключает конфликт версий uqmi/umbim из mrhaav репозитория
+\cp -r ../my_files/atc-fib-fm350_gl/ feeds/packages/net/atc-fib-fm350_gl
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
