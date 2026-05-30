@@ -1,0 +1,15 @@
+#!/bin/sh
+# Hotplug handler for Fibocom FM350-GL in USB/RNDIS mode
+# Triggered when USB device appears after PCIe2 is disabled in DTS
+
+[ "$ACTION" = "add" ] || exit 0
+[ "$SUBSYSTEM" = "usb" ] || exit 0
+
+case "$PRODUCT" in
+	# Fibocom FM350-GL: RNDIS / DualSIM / standard USB compositions
+	2cb7/010b/*|2cb7/0104/*|2cb7/0105/*)
+		logger -t fm350-gl "USB device detected (${PRODUCT}), reloading network in 3s"
+		sleep 3
+		ubus call network reload 2>/dev/null || true
+		;;
+esac

@@ -31,6 +31,7 @@ bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x
 
 
 \cp -r ../my_files/453-w-add-bpi-r4-nvme-dtso.patch target/linux/mediatek/patches-6.12/
+\cp -r ../my_files/456-w-add-bpi-r4-pcie2-disable.patch target/linux/mediatek/patches-6.12/
 \cp -r ../my_files/450-w-nand-mmc-add-bpi-r4.patch package/boot/uboot-mediatek/patches/450-add-bpi-r4.patch
 \cp -r ../my_files/451-w-add-bpi-r4-nvme.patch package/boot/uboot-mediatek/patches/451-add-bpi-r4-nvme.patch
 \cp ../my_files/452-w-add-bpi-r4-nvme-rfb.patch package/boot/uboot-mediatek/patches/452-add-bpi-r4-nvme-rfb.patch
@@ -54,6 +55,20 @@ mkdir -p files/etc/uci-defaults
 \cp -r ../my_files/99-set-hostname files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-set-hostname
 
+# FM350-GL: blacklist PCIe T7xx driver — модем работает только через USB/RNDIS
+mkdir -p files/etc/modules.d
+\cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/
+
+# FM350-GL: hotplug для автоперезапуска сети при появлении USB-устройства
+mkdir -p files/etc/hotplug.d/usb
+\cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
+chmod +x files/etc/hotplug.d/usb/25-fm350-init
+
+# FM350-GL: mrhaav feed добавляется ПЕРВЫМ — официальный packages feed
+# перекрывает устаревшие uqmi/umbim из mrhaav, но atc-fib-fm350_gl
+# (уникальный для mrhaav) всё равно устанавливается из него
+sed -i '1s|^|src-git mrhaav https://github.com/mrhaav/openwrt-packages.git\n|' feeds.conf.default
+
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
@@ -64,12 +79,6 @@ chmod -R 755 package/network/utils/uqmi/files/lib/netifd/proto
 chmod -R 755 feeds/luci/applications/luci-app-modemdata/root
 chmod -R 755 feeds/luci/applications/luci-app-sms-tool-js/root
 chmod -R 755 feeds/packages/utils/modemdata/files/usr/share
-
-# === Кастомные фиды (низкий приоритет) ===
-echo "src-git mrhaav https://github.com/mrhaav/openwrt-packages.git;main" >> feeds.conf.default
-./scripts/feeds update mrhaav
-./scripts/feeds install -a -p mrhaav
-# =========================================
 
 \cp -r ../configs/my_defconfig-wifimgr-universal .config
 make defconfig

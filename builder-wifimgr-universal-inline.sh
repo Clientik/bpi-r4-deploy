@@ -26,6 +26,7 @@ bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic-mac80211-mt798x
 
 
 \cp -r ../my_files/453-w-add-bpi-r4-nvme-dtso.patch target/linux/mediatek/patches-6.12/
+\cp -r ../my_files/456-w-add-bpi-r4-pcie2-disable.patch target/linux/mediatek/patches-6.12/
 \cp -r ../my_files/450-w-nand-mmc-add-bpi-r4.patch package/boot/uboot-mediatek/patches/450-add-bpi-r4.patch
 \cp -r ../my_files/451-w-add-bpi-r4-nvme.patch package/boot/uboot-mediatek/patches/451-add-bpi-r4-nvme.patch
 \cp ../my_files/452-w-add-bpi-r4-nvme-rfb.patch package/boot/uboot-mediatek/patches/452-add-bpi-r4-nvme-rfb.patch
@@ -53,8 +54,21 @@ chmod +x files/etc/uci-defaults/99-set-hostname
 mkdir -p files/etc/modules.d
 \cp -r ../my_files/modules.d-eip-inline/* files/etc/modules.d/
 
+# FM350-GL: blacklist PCIe T7xx driver — модем работает только через USB/RNDIS
+\cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/
+
+# FM350-GL: hotplug для автоперезапуска сети при появлении USB-устройства
+mkdir -p files/etc/hotplug.d/usb
+\cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
+chmod +x files/etc/hotplug.d/usb/25-fm350-init
+
 # CRYPTO_OFFLOAD_INLINE normally restricted to mt7988 rfb targets; open it to all filogic
 sed -i 's/depends on TARGET_mediatek_mt7988 || TARGET_DEVICE_mediatek_filogic_DEVICE_mediatek_mt7988a-rfb || TARGET_DEVICE_mediatek_filogic_DEVICE_mediatek_mt7988d-rfb/depends on TARGET_mediatek_filogic/' ../mtk-openwrt-feeds/feed/kernel/crypto-eip/Config.in
+
+# FM350-GL: mrhaav feed добавляется ПЕРВЫМ — официальный packages feed
+# перекрывает устаревшие uqmi/umbim из mrhaav, но atc-fib-fm350_gl
+# (уникальный для mrhaav) всё равно устанавливается из него
+sed -i '1s|^|src-git mrhaav https://github.com/mrhaav/openwrt-packages.git\n|' feeds.conf.default
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
