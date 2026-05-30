@@ -393,6 +393,50 @@ For new builds, **BPI-R4 8 GB RAM rev 1.2+** is recommended — NVMe and SFP por
 
 ---
 
+## Fibocom FM350-GL 5G modem (M.2 Key-B slot)
+
+The FM350-GL is supported in **USB/RNDIS mode** via the `atc-fib-fm350_gl` package.
+
+### How it works
+
+The M.2 Key-B slot (CN16) connects to both PCIe2 and USB lines. The FM350-GL chooses its mode at hardware level based on whether a PCIe link is detected at boot:
+
+- **PCIe2 active** → modem enters T7xx/PCIe mode → MBIM protocol
+- **PCIe2 disabled** → modem uses USB lines → RNDIS protocol → configured via AT commands
+
+By default this build disables PCIe2 so the modem works out of the box in USB/RNDIS mode without any manual setup.
+
+### Toggle PCIe2 without rebuilding
+
+**Disable PCIe2 (default — FM350-GL in USB/RNDIS mode):**
+```sh
+fw_setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2"
+reboot
+```
+
+**Enable PCIe2 (FM350-GL in MBIM/PCIe mode):**
+```sh
+fw_setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc"
+reboot
+```
+
+The setting persists across reboots. To toggle from U-Boot console (serial):
+```
+# Disable PCIe2:
+setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2"
+saveenv
+
+# Enable PCIe2:
+setenv bootconf_extra "mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc"
+saveenv
+```
+
+### Network interface setup (LuCI)
+
+After flashing, create a WAN interface with protocol **ATC** and device `/dev/ttyUSB2` (or whichever ttyUSB responds to `AT`). The `atc-fib-fm350_gl` script configures the modem and brings up the RNDIS interface automatically.
+
+---
+
 ## Known behaviors
 
 ### Boot time
