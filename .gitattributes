@@ -1,1 +1,7 @@
 * text=auto eol=lf
+
+# Скрипты и патчи — всегда LF, никогда BOM (иначе busybox ash падает)
+*.sh   text eol=lf
+*.gcom text eol=lf
+*.patch text eol=lf
+my_files/atc-fib-fm350_gl/** text eol=lf

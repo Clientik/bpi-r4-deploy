@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 #
 # AT commands for Fibocom FM350-GL modem
 # 2025-08-24 by mrhaav
@@ -655,4 +655,3 @@ proto_atc_teardown() {
 [ -n "$INCLUDE_ONLY" ] || {
     add_protocol atc
 }
-
