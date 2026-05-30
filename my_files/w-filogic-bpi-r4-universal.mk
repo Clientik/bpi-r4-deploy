@@ -101,7 +101,7 @@ mt7988a-bananapi-bpi-r4-sd \
 mt7988a-bananapi-bpi-r4-spim-nand \
 mt7988a-bananapi-bpi-r4-spim-nand-nmbm \
 mt7988a-bananapi-bpi-r4-nvme \
-mt7988a-bananapi-bpi-r4-pcie2-disable \
+mt7988a-bananapi-bpi-r4-nopcie2 \
 mt7988a-bananapi-bpi-r4-leds
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-mux-pca954x kmod-eeprom-at24 \
@@ -162,7 +162,7 @@ mt7988a-bananapi-bpi-r4-sd \
 mt7988a-bananapi-bpi-r4-spim-nand \
 mt7988a-bananapi-bpi-r4-spim-nand-nmbm \
 mt7988a-bananapi-bpi-r4-nvme \
-mt7988a-bananapi-bpi-r4-pcie2-disable \
+mt7988a-bananapi-bpi-r4-nopcie2 \
 mt7988a-bananapi-bpi-r4-leds
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-mux-pca954x kmod-eeprom-at24 \

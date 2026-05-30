@@ -1,0 +1,21 @@
+--- /dev/null
++++ b/arch/arm64/boot/dts/mediatek/mt7988a-bananapi-bpi-r4-nopcie2.dtso
+@@ -0,0 +1,15 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Disable PCIe2 (M.2 Key-B slot CN16) on BPI-R4.
++ * Required for modems like Fibocom FM350-GL to operate in USB mode.
++ *
++ * Applied via bootconf_extra by default (see uci-defaults/98-nopcie2-bootenv).
++ * To re-enable PCIe2 at runtime (no rebuild needed):
++ *   fw_setenv bootconf_extra "$(fw_printenv -n bootconf_extra | sed 's/#mt7988a-bananapi-bpi-r4-nopcie2//')"
++ */
++/dts-v1/;
++/plugin/;
++/ {
++	compatible = "bananapi,bpi-r4", "mediatek,mt7988a";
++};
++
++&{/soc/pcie@11280000} {
++	status = "disabled";
++};
