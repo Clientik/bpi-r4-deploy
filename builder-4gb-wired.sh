@@ -57,6 +57,7 @@ chmod +x files/etc/hotplug.d/usb/25-fm350-init
 # FM350-GL: atc-fib-fm350_gl подключается локально (без внешних feed)
 # Это исключает конфликт версий uqmi/umbim из mrhaav репозитория
 \cp -r ../my_files/atc-fib-fm350_gl/ feeds/packages/net/atc-fib-fm350_gl
+\cp -r ../my_files/luci-proto-atc feeds/luci/applications/luci-proto-atc
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
