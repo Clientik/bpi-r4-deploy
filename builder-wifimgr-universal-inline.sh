@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Очистить Windows пути из WSL PATH (содержат скобки/пробелы, ломают bash в make)
 
 # Validated source commits (v1.1.1, 2026-05-14):
 #   OpenWrt:  99211b26fb3b9ed71d065a1fa35ce54a0d883944  (openwrt-25.12)
@@ -57,10 +56,10 @@ chmod +x files/etc/uci-defaults/99-set-hostname
 mkdir -p files/etc/modules.d
 \cp -r ../my_files/modules.d-eip-inline/* files/etc/modules.d/
 
-# FM350-GL: blacklist PCIe T7xx driver вЂ” РјРѕРґРµРј СЂР°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ С‡РµСЂРµР· USB/RNDIS
+# FM350-GL: blacklist PCIe T7xx driver - modem works only via USB/RNDIS
 \cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/
 
-# FM350-GL: hotplug РґР»СЏ Р°РІС‚РѕРїРµСЂРµР·Р°РїСѓСЃРєР° СЃРµС‚Рё РїСЂРё РїРѕСЏРІР»РµРЅРёРё USB-СѓСЃС‚СЂРѕР№СЃС‚РІР°
+# FM350-GL: hotplug to restart network when a USB device appears
 mkdir -p files/etc/hotplug.d/usb
 \cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
 chmod +x files/etc/hotplug.d/usb/25-fm350-init
@@ -68,8 +67,8 @@ chmod +x files/etc/hotplug.d/usb/25-fm350-init
 # CRYPTO_OFFLOAD_INLINE normally restricted to mt7988 rfb targets; open it to all filogic
 sed -i 's/depends on TARGET_mediatek_mt7988 || TARGET_DEVICE_mediatek_filogic_DEVICE_mediatek_mt7988a-rfb || TARGET_DEVICE_mediatek_filogic_DEVICE_mediatek_mt7988d-rfb/depends on TARGET_mediatek_filogic/' ../mtk-openwrt-feeds/feed/kernel/crypto-eip/Config.in
 
-# FM350-GL: atc-fib-fm350_gl подключается локально (без внешних feed)
-# Это исключает конфликт версий uqmi/umbim из mrhaav репозитория
+# FM350-GL: atc-fib-fm350_gl vendored locally (no external feed needed)
+# the mrhaav feed pulls old uqmi/umbim that break the cmake build
 \cp -r ../my_files/atc-fib-fm350_gl/ feeds/packages/net/atc-fib-fm350_gl
 \cp -r ../my_files/luci-proto-atc feeds/luci/applications/luci-proto-atc
 

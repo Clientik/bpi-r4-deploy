@@ -401,35 +401,37 @@ The FM350-GL is supported in **USB/RNDIS mode** via the `atc-fib-fm350_gl` packa
 
 The M.2 Key-B slot (CN16) connects to both PCIe2 and USB lines. The FM350-GL chooses its mode at hardware level based on whether a PCIe link is detected at boot:
 
-- **PCIe2 active** → modem enters T7xx/PCIe mode → MBIM protocol
-- **PCIe2 disabled** → modem uses USB lines → RNDIS protocol → configured via AT commands
+- **PCIe2 active** -> modem enters T7xx/PCIe mode -> MBIM protocol
+- **PCIe2 disabled** -> modem uses USB lines -> RNDIS protocol -> configured via AT commands
 
 By default this build disables PCIe2 so the modem works out of the box in USB/RNDIS mode without any manual setup.
 
-### Toggle PCIe2 / LED via U-Boot console
+Port LEDs are enabled at build time (in the base DTS, not as an overlay), so they always work regardless of the modem mode and are not affected by the toggle below.
 
-LED портов (`leds`) всегда в `bootconf_extra` — горят независимо от режима модема. PCIe2 переключается добавлением/убиранием `nopcie2`.
+### Toggle PCIe2 via U-Boot console
 
-**По умолчанию (USB + LED) — уже прошито:**
+PCIe2 is switched by adding/removing the `nopcie2` overlay in `bootconf_extra`.
+
+**Default (USB/RNDIS) - already flashed:**
 ```
-bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
+bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2
 ```
 
-Прерви boot по serial, затем:
+Interrupt boot over serial, then:
 
-#### Включить PCIe2 (MBIM) — LED сохраняются
+#### Enable PCIe2 (MBIM mode)
 ```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-leds
+setenv bootconf_extra
 saveenv
 ```
 
-#### Вернуть USB + LED (по умолчанию)
+#### Restore USB/RNDIS (default)
 ```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2
 saveenv
 ```
 
-> NAND: добавь в начало `mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#` к обоим командам. После saveenv — power cycle.
+> NAND: prepend `mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#` to the value. After saveenv, do a full power cycle.
 
 
 ### Network interface setup (LuCI)

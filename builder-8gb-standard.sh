@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Очистить Windows пути из WSL PATH (содержат скобки/пробелы, ломают bash в make)
 
 rm -rf openwrt
 rm -rf mtk-openwrt-feeds
@@ -46,17 +45,17 @@ mkdir -p files/etc/uci-defaults
 \cp -r ../my_files/99-set-hostname files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-set-hostname
 
-# FM350-GL: blacklist PCIe T7xx driver вЂ” РјРѕРґРµРј СЂР°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ С‡РµСЂРµР· USB/RNDIS
+# FM350-GL: blacklist PCIe T7xx driver - modem works only via USB/RNDIS
 mkdir -p files/etc/modules.d
 \cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/
 
-# FM350-GL: hotplug РґР»СЏ Р°РІС‚РѕРїРµСЂРµР·Р°РїСѓСЃРєР° СЃРµС‚Рё РїСЂРё РїРѕСЏРІР»РµРЅРёРё USB-СѓСЃС‚СЂРѕР№СЃС‚РІР°
+# FM350-GL: hotplug to restart network when a USB device appears
 mkdir -p files/etc/hotplug.d/usb
 \cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
 chmod +x files/etc/hotplug.d/usb/25-fm350-init
 
-# FM350-GL: atc-fib-fm350_gl подключается локально (без внешних feed)
-# Это исключает конфликт версий uqmi/umbim из mrhaav репозитория
+# FM350-GL: atc-fib-fm350_gl vendored locally (no external feed needed)
+# the mrhaav feed pulls old uqmi/umbim that break the cmake build
 \cp -r ../my_files/atc-fib-fm350_gl/ feeds/packages/net/atc-fib-fm350_gl
 \cp -r ../my_files/luci-proto-atc feeds/luci/applications/luci-proto-atc
 

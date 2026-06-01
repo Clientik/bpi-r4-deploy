@@ -239,7 +239,7 @@ jobs:
           tag_name: wifimgr-latest
           name: "luci-app-wifimgr (latest)"
           body: |
-            Standalone APK for luci-app-wifimgr — install on any BPI-R4 running this firmware.
+            Standalone APK for luci-app-wifimgr  install on any BPI-R4 running this firmware.
 
             ```
             apk add --allow-untrusted --no-network /tmp/${{ env.APK_NAME }}

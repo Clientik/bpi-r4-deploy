@@ -7,7 +7,7 @@
  };
 +
 +/*
-+ * Built-in GbE port LEDs (ports 0-3). Always enabled — basic router
++ * Built-in GbE port LEDs (ports 0-3). Always enabled  basic router
 + * function, independent of any overlay. Hardware-controlled by the PHY
 + * MAC (blink on link+activity), works with HNAT offload.
 + * color = <2> is LED_COLOR_ID_GREEN.

@@ -1,6 +1,6 @@
 * text=auto eol=lf
 
-# Скрипты и патчи — всегда LF, никогда BOM (иначе busybox ash падает)
+# Scripts and patches: always LF, never BOM (BOM breaks busybox ash)
 *.sh   text eol=lf
 *.gcom text eol=lf
 *.patch text eol=lf

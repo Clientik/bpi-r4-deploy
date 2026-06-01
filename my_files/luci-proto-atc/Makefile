@@ -1,5 +1,5 @@
 #
-# luci-proto-atc — LuCI support for the ATC (AT-commands) protocol
+# luci-proto-atc  LuCI support for the ATC (AT-commands) protocol
 # Source: mrhaav/openwrt (vendored locally to avoid mrhaav feed conflicts)
 #
 include $(TOPDIR)/rules.mk
