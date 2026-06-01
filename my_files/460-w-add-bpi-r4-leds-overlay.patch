@@ -1,0 +1,31 @@
+--- /dev/null
++++ b/arch/arm64/boot/dts/mediatek/mt7988a-bananapi-bpi-r4-leds.dtso
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Light the built-in GbE LAN port LEDs on BPI-R4 (MTK SDK build).
++ *
++ * The device tree already has the led nodes (ethernet-phy@0..3/leds,
++ * status okay), but on the MTK SDK build the LAN ports are driven by
++ * the mt7530 DSA switch driver, which never applies the phy "gbe-led"
++ * pinctrl. So the gbe*_led0 pins stay unmuxed and the port LEDs are
++ * dark (dmesg: "Fail to set LED pins!").
++ *
++ * Apply the led pin groups as a default hog on the pin controller so
++ * they are muxed to LED function at boot, letting the switch drive
++ * the LAN port LEDs. Runtime overlay (bootconf_extra) -> resolves via
++ * base DTB __symbols__, same mechanism as the nopcie2 overlay.
++ */
++/dts-v1/;
++/plugin/;
++/ {
++	compatible = "bananapi,bpi-r4", "mediatek,mt7988a";
++
++	fragment@0 {
++		target = <&pio>;
++		__overlay__ {
++			pinctrl-names = "default";
++			pinctrl-0 = <&gbe0_led0_pins>, <&gbe1_led0_pins>, <&gbe2_led0_pins>, <&gbe3_led0_pins>;
++		};
++	};
++};
