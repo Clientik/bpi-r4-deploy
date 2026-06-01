@@ -5,3 +5,4 @@
 *.gcom text eol=lf
 *.patch text eol=lf
 my_files/atc-fib-fm350_gl/** text eol=lf
+my_files/modemdata-main/files/usr/share/modemdata/** text eol=lf

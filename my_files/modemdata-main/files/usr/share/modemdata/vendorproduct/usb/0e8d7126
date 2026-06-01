@@ -1,0 +1,9 @@
+# Fibocom FM350-GL
+# FM350 returns bare values (no +CGMI:/+CGMM: prefixes) and gcom desyncs,
+# so query each field via sms_tool, like obsy does for other Fibocom modems.
+
+VENDOR=$(sms_tool -d $DEVICE at "AT+CGMI" | grep -i -v "^at" | xargs)
+PRODUCT=$(sms_tool -d $DEVICE at "AT+CGMM" | grep -i -v "^at" | xargs)
+REVISION=$(sms_tool -d $DEVICE at "AT+CGMR" | grep -i -v "^at" | xargs)
+IMEI=$(sms_tool -d $DEVICE at "AT+CGSN" | grep -i -v "^at" | xargs)
+IMSI=$(sms_tool -d $DEVICE at "AT+CIMI" | grep -i -v "^at" | xargs)
