@@ -406,51 +406,31 @@ The M.2 Key-B slot (CN16) connects to both PCIe2 and USB lines. The FM350-GL cho
 
 By default this build disables PCIe2 so the modem works out of the box in USB/RNDIS mode without any manual setup.
 
-### Toggle PCIe2 via U-Boot console
+### Toggle PCIe2 / LED via U-Boot console
 
-Interrupt boot with any key over serial, then:
+LED портов (`leds`) всегда в `bootconf_extra` — горят независимо от режима модема. PCIe2 переключается добавлением/убиранием `nopcie2`.
 
-#### Enable PCIe2 (FM350-GL → MBIM/PCIe mode)
-
-**SD card and eMMC:**
+**По умолчанию (USB + LED) — уже прошито:**
 ```
-setenv bootconf_extra
+bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
+```
+
+Прерви boot по serial, затем:
+
+#### Включить PCIe2 (MBIM) — LED сохраняются
+```
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-leds
 saveenv
 ```
 
-**NAND:**
+#### Вернуть USB + LED (по умолчанию)
 ```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
 saveenv
 ```
 
-**NAND PoE:**
-```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-emmc
-saveenv
-```
+> NAND: добавь в начало `mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#` к обоим командам. После saveenv — power cycle.
 
-#### Disable PCIe2 again (FM350-GL → USB/RNDIS mode)
-
-**SD card and eMMC:**
-```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2
-saveenv
-```
-
-**NAND:**
-```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2
-saveenv
-```
-
-**NAND PoE:**
-```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-emmc#mt7988a-bananapi-bpi-r4-nopcie2
-saveenv
-```
-
-After `saveenv` — reboot. Changes are permanent until changed again.
 
 ### Network interface setup (LuCI)
 
