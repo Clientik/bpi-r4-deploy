@@ -525,3 +525,6 @@ CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_bananapi_bpi-r4-8gb=y
 CONFIG_TARGET_DEVICE_PACKAGES_mediatek_filogic_DEVICE_bananapi_bpi-r4-8gb=""
 CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_bananapi_bpi-r4-poe-8gb=y
 CONFIG_TARGET_DEVICE_PACKAGES_mediatek_filogic_DEVICE_bananapi_bpi-r4-poe-8gb=""
+CONFIG_PACKAGE_mdio-tools=y
+CONFIG_PACKAGE_kmod-mdio-netlink=y
+CONFIG_PACKAGE_luci-app-mwan3=y
