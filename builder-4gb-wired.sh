@@ -31,6 +31,7 @@ bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic prepare
 \cp -r ../my_files/w-sd-nand-mmc-nvme-comb-filogic.mk target/linux/mediatek/image/filogic.mk
 
 echo "CONFIG_BLK_DEV_NVME=y" >> target/linux/mediatek/filogic/config-6.12
+echo "CONFIG_LED_TRIGGER_PHY=y" >> target/linux/mediatek/filogic/config-6.12
 
 \cp -r ../my_files/999-fitblk-02-w-add-bpi-r4-nvme-fitblk.patch target/linux/mediatek/patches-6.12
 
