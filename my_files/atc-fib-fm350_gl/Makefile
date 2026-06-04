@@ -1,5 +1,5 @@
 include $(TOPDIR)/rules.mk
-
+ 
 PKG_NAME:=atc-fib-fm350_gl
 PKG_VERSION:=2025.08.24
 PKG_RELEASE:=3
@@ -49,5 +49,5 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/etc/gcom
 	$(INSTALL_DATA) ./files/etc/gcom/* $(1)/etc/gcom
 endef
-
+ 
 $(eval $(call BuildPackage,$(PKG_NAME)))

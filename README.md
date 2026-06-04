@@ -395,6 +395,13 @@ For new builds, **BPI-R4 8 GB RAM rev 1.2+** is recommended — NVMe and SFP por
 
 ## Fibocom FM350-GL 5G modem (M.2 Key-B slot)
 
+> **This branch (`FM350-GL-Support`) is a fork of the main `woziwrt/bpi-r4-deploy`,
+> with support added for the Fibocom FM350-GL 5G modem.** Everything else matches
+> upstream; only the modem-specific pieces are added on top: PCIe2 disable
+> (`456`/`458`), the `atc-fib-fm350_gl` proto package, `luci-proto-atc`, the
+> `kmod-mtk-t7xx` blacklist and the USB hotplug init. The universal LED and
+> modemdata improvements live in their own branches (`led-fix`, `modemdata-fix`).
+
 The FM350-GL is supported in **USB/RNDIS mode** via the `atc-fib-fm350_gl` package.
 
 ### How it works
@@ -434,22 +441,25 @@ this is a board hardware limitation, not a software one.
 
 PCIe2 is switched by adding/removing the `nopcie2` overlay in `bootconf_extra`.
 
+This build also carries the `leds` overlay in `bootconf_extra`, so keep it when
+toggling PCIe2.
+
 **Default (USB/RNDIS) - already flashed:**
 ```
-bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2
+bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
 ```
 
 Interrupt boot over serial, then:
 
-#### Enable PCIe2 (MBIM mode)
+#### Enable PCIe2 (MBIM mode) — keeps the LEDs
 ```
-setenv bootconf_extra
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-leds
 saveenv
 ```
 
 #### Restore USB/RNDIS (default)
 ```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
 saveenv
 ```
 
@@ -459,6 +469,24 @@ saveenv
 ### Network interface setup (LuCI)
 
 After flashing, create a WAN interface with protocol **ATC** and device `/dev/ttyUSB2` (or whichever ttyUSB responds to `AT`). The `atc-fib-fm350_gl` script configures the modem and brings up the RNDIS interface automatically.
+
+### Known issues & tips
+
+- **Docker can overlap the modem IP range.** Docker's default address pool
+  (172.16/12, plus the CGN 10.x ranges used by some carriers) can collide with
+  the addresses the modem/RNDIS interface gets, and after boot the WAN may come
+  up before Docker has settled. If the modem interface misbehaves right after a
+  reboot, the simplest fix is to **recreate (down/up) the ATC interface about
+  10 minutes after boot** — by then Docker and the modem have stabilized and it
+  comes up cleanly.
+
+- **Use separate ttyUSB ports for data vs. internet.** The FM350 exposes several
+  AT-capable `ttyUSB` ports but they share one AT engine, so two consumers
+  hitting the modem at once get `CME ERROR` / overlapping replies. Point each at
+  its own port — for example **modemdata polling on `ttyUSB1`** and the **ATC
+  internet interface on `ttyUSB3`** (adjust to whichever ports answer `AT` on
+  your unit). This keeps the status polling from interfering with the data
+  connection.
 
 ---
 
