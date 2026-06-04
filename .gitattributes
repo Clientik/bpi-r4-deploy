@@ -6,3 +6,4 @@
 *.patch text eol=lf
 my_files/atc-fib-fm350_gl/** text eol=lf
 my_files/modemdata-main/files/usr/share/modemdata/** text eol=lf
+my_files/etc-files/** text eol=lf

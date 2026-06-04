@@ -52,6 +52,14 @@ chmod +x files/etc/uci-defaults/99-set-hostname
 mkdir -p files/etc/modules.d
 \cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/
 
+# LED: program mt7530 gphy port-LED registers at boot (green+amber, link+activity)
+mkdir -p files/etc/init.d
+\cp ../my_files/etc-files/init.d/mtk-led-fix files/etc/init.d/
+chmod +x files/etc/init.d/mtk-led-fix
+mkdir -p files/etc/uci-defaults
+\cp ../my_files/etc-files/uci-defaults/95-mtk-led-fix-enable files/etc/uci-defaults/
+chmod +x files/etc/uci-defaults/95-mtk-led-fix-enable
+
 # FM350-GL: hotplug to restart network when a USB device appears
 mkdir -p files/etc/hotplug.d/usb
 \cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
