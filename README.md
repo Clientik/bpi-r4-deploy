@@ -406,7 +406,27 @@ The M.2 Key-B slot (CN16) connects to both PCIe2 and USB lines. The FM350-GL cho
 
 By default this build disables PCIe2 so the modem works out of the box in USB/RNDIS mode without any manual setup.
 
-Port LEDs are enabled at build time (in the base DTS, not as an overlay), so they always work regardless of the modem mode and are not affected by the toggle below.
+### LAN port LEDs
+
+On the MTK SDK build the 4 LAN gphys bind to the Generic PHY driver under the
+mt7530-mmio DSA switch, so nothing configures the port LEDs and they stay dark.
+This build fixes the **green** LED:
+
+- `460-w-add-bpi-r4-leds-overlay.patch` muxes the gphy LED pins (runtime overlay
+  in `bootconf_extra`, same mechanism as `nopcie2`).
+- `/etc/init.d/mtk-led-fix` programs the gphy LED registers at boot via
+  `mdio-tools`: green = on at link + blink on tx/rx. Per-port polarity is
+  handled (WAN/LAN1 are active-low → `0xc007`, LAN2/LAN3 → `0x8007`).
+- `CONFIG_LED_TRIGGER_PHY=y` is enabled in the kernel.
+
+The **amber/right** LED is *not* wired to a controllable output on the BPI-R4
+(confirmed: gphy LED1 force-on does nothing, and mainline configures led0 only),
+so only the green LED can be driven — this is a board hardware limitation, not a
+software one.
+
+> During the first seconds of boot WAN/LAN1 briefly light up (the active-low
+> ports sit in their inverted power-on default) until `mtk-led-fix` runs and
+> corrects them. This is cosmetic.
 
 ### Toggle PCIe2 via U-Boot console
 
