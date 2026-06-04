@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/configs/mt7988a_bananapi_bpi-r4-emmc_defconfig
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -46,6 +46,7 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_MDIO=y
 +CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MMC=y
@@ -142,7 +143,7 @@
 +CONFIG_HEXDUMP=y
 --- /dev/null
 +++ b/configs/mt7988a_bananapi_bpi-r4-sdmmc_defconfig
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -188,6 +189,7 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_MDIO=y
 +CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MMC=y
@@ -284,7 +286,7 @@
 +CONFIG_HEXDUMP=y
 --- /dev/null
 +++ b/configs/mt7988a_bananapi_bpi-r4-snand_defconfig
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -327,6 +329,7 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_MDIO=y
 +CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MMC=y
@@ -873,7 +876,7 @@
 +};
 --- /dev/null
 +++ b/configs/mt7988a_bananapi_bpi-r4-poe-emmc_defconfig
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -919,6 +922,7 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_MDIO=y
 +CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MMC=y
@@ -1015,7 +1019,7 @@
 +CONFIG_HEXDUMP=y
 --- /dev/null
 +++ b/configs/mt7988a_bananapi_bpi-r4-poe-sdmmc_defconfig
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -1061,6 +1065,7 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_MDIO=y
 +CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MMC=y
@@ -1157,7 +1162,7 @@
 +CONFIG_HEXDUMP=y
 --- /dev/null
 +++ b/configs/mt7988a_bananapi_bpi-r4-poe-snand_defconfig
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -1200,6 +1205,7 @@
 +CONFIG_CMD_STRINGS=y
 +CONFIG_CMD_DM=y
 +CONFIG_CMD_GPIO=y
++CONFIG_CMD_MDIO=y
 +CONFIG_CMD_PWM=y
 +CONFIG_CMD_GPT=y
 +CONFIG_CMD_MMC=y
