@@ -22,16 +22,22 @@ apply_leds() {
 	[ -e "/sys/class/mdio_bus/$bus" ] || return 0
 	command -v mdio >/dev/null 2>&1 || return 0
 
-	local p reg
-	# active-low ports (WAN, LAN1): polarity bit set
+	local p
+	# Green (LED0) = link indicator, solid (no blink).
+	# Amber (LED1) = activity, off when idle and blinks on tx/rx.
+	# phy0/phy1 LEDs are active-low on this board -> POLARITY bit.
 	for p in 0 1; do
-		for reg in 0x24 0x26; do mdio "$bus" mmd "$p:0x1f" raw "$reg" 0xc007; done
-		for reg in 0x25 0x27; do mdio "$bus" mmd "$p:0x1f" raw "$reg" 0x003f; done
+		mdio "$bus" mmd "$p:0x1f" raw 0x24 0xc007   # green: on at link
+		mdio "$bus" mmd "$p:0x1f" raw 0x25 0x0000   # green: solid, no blink
+		mdio "$bus" mmd "$p:0x1f" raw 0x26 0xc000   # amber: off when idle (enable+polarity)
+		mdio "$bus" mmd "$p:0x1f" raw 0x27 0x003f   # amber: blink on tx/rx
 	done
-	# active-high ports (LAN2, LAN3): no polarity bit
+	# phy2/phy3 are active-high (no polarity bit).
 	for p in 2 3; do
-		for reg in 0x24 0x26; do mdio "$bus" mmd "$p:0x1f" raw "$reg" 0x8007; done
-		for reg in 0x25 0x27; do mdio "$bus" mmd "$p:0x1f" raw "$reg" 0x003f; done
+		mdio "$bus" mmd "$p:0x1f" raw 0x24 0x8007   # green: on at link
+		mdio "$bus" mmd "$p:0x1f" raw 0x25 0x0000   # green: solid, no blink
+		mdio "$bus" mmd "$p:0x1f" raw 0x26 0x8000   # amber: off when idle
+		mdio "$bus" mmd "$p:0x1f" raw 0x27 0x003f   # amber: blink on tx/rx
 	done
 }
 
