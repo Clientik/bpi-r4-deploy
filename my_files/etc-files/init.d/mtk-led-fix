@@ -15,12 +15,20 @@
 # phy0/phy1 LEDs are active-low on this board -> POLARITY bit -> 0xc007
 # phy2/phy3 are active-high                            ->          0x8007
 
-START=99
+# Run early so the brief power-on "WAN/LAN1 lit" (inverted gphy default,
+# before the registers are programmed) is as short as possible. The work
+# is backgrounded and waits for the switch mdio bus, so an early START
+# never blocks boot even with the switch's probe deferral.
+START=10
 
 apply_leds() {
-	local bus=mt7530_dsa-0
-	[ -e "/sys/class/mdio_bus/$bus" ] || return 0
+	local bus=mt7530_dsa-0 i=0
 	command -v mdio >/dev/null 2>&1 || return 0
+	# wait up to ~30s for the mt7530 switch mdio bus to appear
+	while [ ! -e "/sys/class/mdio_bus/$bus" ] && [ "$i" -lt 60 ]; do
+		sleep 0.5; i=$((i + 1))
+	done
+	[ -e "/sys/class/mdio_bus/$bus" ] || return 0
 
 	local p
 	# Only the green LED (LED0) is wired to the gphy on the BPI-R4 - the
@@ -41,7 +49,8 @@ apply_leds() {
 }
 
 boot() {
-	apply_leds
+	# background: don't block boot while waiting for the switch
+	apply_leds &
 }
 
 start() {
