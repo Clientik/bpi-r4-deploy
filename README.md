@@ -418,15 +418,17 @@ This build fixes the **green** LED:
   `mdio-tools`: green = on at link + blink on tx/rx. Per-port polarity is
   handled (WAN/LAN1 are active-low → `0xc007`, LAN2/LAN3 → `0x8007`).
 - `CONFIG_LED_TRIGGER_PHY=y` is enabled in the kernel.
+- To avoid the brief WAN/LAN1 flash at boot (the active-low ports sit in their
+  inverted gphy power-on default until userspace runs), U-Boot programs the LED
+  ON_CTRL registers before the kernel: `CONFIG_CMD_MDIO=y` plus a `ledfix` env
+  var run from `bootcmd` (`mdio write mt7988 <phy> 1f.24 ...`). The kernel keeps
+  these values, so the ports stay dark from power-on. `mtk-led-fix` still runs
+  in Linux to add the activity blink.
 
 The **amber/right** LED is *not* wired to a controllable output on the BPI-R4
-(confirmed: gphy LED1 force-on does nothing, and mainline configures led0 only),
-so only the green LED can be driven — this is a board hardware limitation, not a
-software one.
-
-> During the first seconds of boot WAN/LAN1 briefly light up (the active-low
-> ports sit in their inverted power-on default) until `mtk-led-fix` runs and
-> corrects them. This is cosmetic.
+(confirmed: gphy LED1 force-on does nothing, mainline configures led0 only, and
+the schematic marks `RJ45_LED_C/D` as NC), so only the green LED can be driven —
+this is a board hardware limitation, not a software one.
 
 ### Toggle PCIe2 via U-Boot console
 
