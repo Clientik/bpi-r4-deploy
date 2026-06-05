@@ -527,4 +527,9 @@ CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_bananapi_bpi-r4-poe-8gb=y
 CONFIG_TARGET_DEVICE_PACKAGES_mediatek_filogic_DEVICE_bananapi_bpi-r4-poe-8gb=""
 CONFIG_PACKAGE_mdio-tools=y
 CONFIG_PACKAGE_kmod-mdio-netlink=y
+# zapret (nftables mode) - kmod-nft-queue is kernel-tied (not in public feed)
+CONFIG_PACKAGE_kmod-nft-queue=y
+CONFIG_PACKAGE_coreutils-sort=y
+CONFIG_PACKAGE_coreutils-sleep=y
+CONFIG_PACKAGE_gzip=y
 CONFIG_PACKAGE_luci-app-mwan3=y

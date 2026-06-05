@@ -489,6 +489,18 @@ After flashing, create a WAN interface with protocol **ATC** and device `/dev/tt
   your unit). This keeps the status polling from interfering with the data
   connection.
 
+- **Zapret / DPI bypass — use nftables mode.** OpenWrt 25.12 runs firewall4
+  (nftables), and a self-built image cannot install `kmod-*` from the public
+  feed (kernel vermagic mismatch). So this build bakes in the one kernel module
+  zapret needs in **nftables** mode: `kmod-nft-queue` (pulls `kmod-nfnetlink-queue`).
+  Everything else for the nftables path (`nftables`, `kmod-nft-nat`) is already
+  in the firewall4 image; `curl`/`coreutils-sort`/`coreutils-sleep`/`gzip` are
+  baked too so the installer runs offline. When installing
+  [zapret4rocket](https://github.com/IndeecFOX/zapret4rocket) (or any bol-van
+  zapret), **switch the firewall type to `nftables`** (`FWTYPE=nftables`) — the
+  default `iptables` path pulls a large `iptables-mod-*` / `ip6tables-extra`
+  stack whose `kmod-*` are not installable on a custom build.
+
 ---
 
 ## Known behaviors

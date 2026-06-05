@@ -405,6 +405,11 @@ CONFIG_PACKAGE_musl-fts=y
 CONFIG_PACKAGE_mwan3=y
 CONFIG_PACKAGE_mdio-tools=y
 CONFIG_PACKAGE_kmod-mdio-netlink=y
+# zapret (nftables mode) - kmod-nft-queue is kernel-tied (not in public feed)
+CONFIG_PACKAGE_kmod-nft-queue=y
+CONFIG_PACKAGE_coreutils-sort=y
+CONFIG_PACKAGE_coreutils-sleep=y
+CONFIG_PACKAGE_gzip=y
 CONFIG_PACKAGE_netfilter-flowtable=y
 CONFIG_PACKAGE_netsys_dbg_util=y
 CONFIG_PACKAGE_omcproxy=y
