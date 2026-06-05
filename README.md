@@ -398,7 +398,7 @@ For new builds, **BPI-R4 8 GB RAM rev 1.2+** is recommended — NVMe and SFP por
 > **This branch (`FM350-GL-Support`) is a fork of the main `woziwrt/bpi-r4-deploy`,
 > with support added for the Fibocom FM350-GL 5G modem.** Everything else matches
 > upstream; only the modem-specific pieces are added on top: PCIe2 disable
-> (`456`/`458`), the `atc-fib-fm350_gl` proto package, `luci-proto-atc`, the
+> (`480`/`481`), the `atc-fib-fm350_gl` proto package, `luci-proto-atc`, the
 > `kmod-mtk-t7xx` blacklist and the USB hotplug init. The universal LED and
 > modemdata improvements live in their own branches (`led-fix`, `modemdata-fix`).
 
@@ -419,7 +419,7 @@ On the MTK SDK build the 4 LAN gphys bind to the Generic PHY driver under the
 mt7530-mmio DSA switch, so nothing configures the port LEDs and they stay dark.
 This build fixes the **green** LED:
 
-- `460-w-add-bpi-r4-leds-overlay.patch` muxes the gphy LED pins (runtime overlay
+- `470-w-add-bpi-r4-leds-overlay.patch` muxes the gphy LED pins (runtime overlay
   in `bootconf_extra`, same mechanism as `nopcie2`).
 - `/etc/init.d/mtk-led-fix` programs the gphy LED registers at boot via
   `mdio-tools`: green = on at link + blink on tx/rx. Per-port polarity is
@@ -427,10 +427,11 @@ This build fixes the **green** LED:
 - `CONFIG_LED_TRIGGER_PHY=y` is enabled in the kernel.
 - To avoid the brief WAN/LAN1 flash at boot (the active-low ports sit in their
   inverted gphy power-on default until userspace runs), U-Boot programs the LED
-  ON_CTRL registers before the kernel: `CONFIG_CMD_MDIO=y` plus a `ledfix` env
-  var run from `bootcmd` (`mdio write mt7988 <phy> 1f.24 ...`). The kernel keeps
-  these values, so the ports stay dark from power-on. `mtk-led-fix` still runs
-  in Linux to add the activity blink.
+  ON_CTRL registers before the kernel. This lives in its own standalone patch
+  `471-w-bpi-r4-led-uboot.patch` (it does not edit woziwrt's U-Boot patches):
+  `CONFIG_CMD_MDIO=y` plus `mdio write mt7988 <phy> 1f.24 ...` prepended inline
+  to `bootcmd`. The kernel keeps these values, so the ports stay dark from
+  power-on. `mtk-led-fix` still runs in Linux to add the activity blink.
 
 The **amber/right** LED is *not* wired to a controllable output on the BPI-R4
 (confirmed: gphy LED1 force-on does nothing, mainline configures led0 only, and
@@ -446,7 +447,7 @@ toggling PCIe2.
 
 **Default (USB/RNDIS) - already flashed:**
 ```
-bootconf_extra=mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
+bootconf_extra=mt7988a-bananapi-bpi-r4-leds#mt7988a-bananapi-bpi-r4-nopcie2
 ```
 
 Interrupt boot over serial, then:
@@ -459,7 +460,7 @@ saveenv
 
 #### Restore USB/RNDIS (default)
 ```
-setenv bootconf_extra mt7988a-bananapi-bpi-r4-nopcie2#mt7988a-bananapi-bpi-r4-leds
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-leds#mt7988a-bananapi-bpi-r4-nopcie2
 saveenv
 ```
 
