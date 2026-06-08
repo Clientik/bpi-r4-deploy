@@ -51,9 +51,9 @@ This build fixes the **green** LED:
 - `470-w-add-bpi-r4-leds-overlay.patch` muxes the gphy LED pins (runtime overlay
   in `bootconf_extra`, same mechanism as `nopcie2`).
 - `/etc/init.d/mtk-led-fix` programs the gphy LED registers at boot via
-  `mdio-tools`: green = on at link + blink on tx/rx. All 4 LAN gphys are
-  active-low, so the POLARITY bit is set on every port (`0xc007`) - without
-  it the LED stays lit when there is no link.
+  `mdio-tools`: green = on at link + blink on tx/rx. Per-port polarity is
+  board-specific: WAN/LAN1/LAN2 are active-low (`0xc007`), LAN3 is
+  active-high (`0x8007`) - wrong polarity lights the LED with no link.
 - `CONFIG_LED_TRIGGER_PHY=y` is enabled in the kernel.
 - To avoid the brief WAN/LAN1 flash at boot (the active-low ports sit in their
   inverted gphy power-on default until userspace runs), U-Boot programs the LED
