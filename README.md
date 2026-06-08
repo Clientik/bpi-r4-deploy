@@ -118,6 +118,14 @@ After flashing, create a WAN interface with protocol **ATC** and device `/dev/tt
   your unit). This keeps the status polling from interfering with the data
   connection.
 
+- **ModemManager is disabled by default.** This build drives the FM350 through
+  the **ATC proto** (`luci-proto-atc`). ModemManager (still installed) competes
+  with it for the modem's single AT engine and can win the race at boot,
+  grabbing the AT ports / `eth1` — the interface then gets an IP but **RX stays
+  0** (no data). A `uci-defaults` script disables it on first boot. If you would
+  rather use ModemManager instead of the ATC proto, re-enable it:
+  `/etc/init.d/modemmanager enable && /etc/init.d/modemmanager start`.
+
 - **Zapret / DPI bypass — use nftables mode.** OpenWrt 25.12 runs firewall4
   (nftables), and a self-built image cannot install `kmod-*` from the public
   feed (kernel vermagic mismatch). So this build bakes in the one kernel module

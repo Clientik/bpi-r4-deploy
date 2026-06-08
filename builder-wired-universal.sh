@@ -60,6 +60,8 @@ chmod +x files/etc/init.d/mtk-led-fix
 mkdir -p files/etc/uci-defaults
 \cp ../my_files/etc-files/uci-defaults/95-mtk-led-fix-enable files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/95-mtk-led-fix-enable
+\cp ../my_files/etc-files/uci-defaults/99-disable-modemmanager files/etc/uci-defaults/
+chmod +x files/etc/uci-defaults/99-disable-modemmanager
 
 # FM350-GL: hotplug to restart network when a USB device appears
 mkdir -p files/etc/hotplug.d/usb

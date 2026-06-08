@@ -1,0 +1,16 @@
+#!/bin/sh
+# FM350-GL uses the ATC proto (luci-proto-atc). ModemManager competes with it
+# for the modem's single AT engine and can grab the ports first (race at boot),
+# which breaks the RNDIS data session - the interface gets an IP but RX stays 0.
+#
+# So ModemManager is DISABLED by default. The package stays installed; if you
+# prefer to use it instead of the ATC proto, re-enable it any time:
+#   /etc/init.d/modemmanager enable && /etc/init.d/modemmanager start
+#
+# This runs once on first boot (and again after a clean reflash); a manual
+# re-enable afterwards is preserved.
+[ -x /etc/init.d/modemmanager ] && {
+	/etc/init.d/modemmanager disable
+	/etc/init.d/modemmanager stop
+}
+exit 0
