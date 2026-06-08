@@ -71,6 +71,9 @@ chmod +x files/etc/hotplug.d/usb/25-fm350-init
 # the mrhaav feed pulls old uqmi/umbim that break the cmake build
 \cp -r ../my_files/atc-fib-fm350_gl/ feeds/packages/net/atc-fib-fm350_gl
 \cp -r ../my_files/luci-proto-atc feeds/luci/applications/luci-proto-atc
+\cp -r ../my_files/mihomo-meta feeds/packages/net/mihomo-meta
+\cp -r ../my_files/nikki feeds/packages/net/nikki
+\cp -r ../my_files/luci-app-nikki feeds/luci/applications/luci-app-nikki
 
 ./scripts/feeds update -a
 ./scripts/feeds install -a
