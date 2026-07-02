@@ -1,0 +1,14 @@
+# Fibocom FM350-GL (MediaTek T700, USB/RNDIS mode)
+
+T=$(sms_tool -d $DEVICE at "AT+CGMI" | grep -i -v "^at" | sed 's/^+CGMI: //;s/"//g' | xargs)
+[ -n "$T" ] && VENDOR="$T"
+T=$(sms_tool -d $DEVICE at "AT+CGMM" | grep -i -v "^at" | sed 's/^+CGMM: //;s/"//g' | xargs)
+[ -n "$T" ] && PRODUCT="$T"
+T=$(sms_tool -d $DEVICE at "AT+CGMR" | grep -i -v "^at" | sed 's/^+CGMR: //;s/"//g' | xargs)
+[ -n "$T" ] && REVISION="$T"
+T=$(sms_tool -d $DEVICE at "AT+CGSN" | grep -i -v "^at" | xargs)
+[ -n "$T" ] && IMEI="$T"
+T=$(sms_tool -d $DEVICE at "AT+ICCID" | awk -F: '/ICCID/{print $2}' | xargs)
+[ -n "$T" ] && ICCID="$T"
+T=$(sms_tool -d $DEVICE at "AT+CIMI" | grep -i -v "^at" | xargs)
+[ -n "$T" ] && IMSI="$T"
