@@ -30,6 +30,7 @@ Keep the fork as **one delta commit on top of upstream main** where possible:
 | **FM350 modem stack** | `my_files/atc-fib-fm350_gl/**`, `my_files/luci-proto-atc/**` (vendored into feeds by builders), `my_files/etc-files/modules.d/mtk-t7xx-blacklist`, `my_files/etc-files/hotplug.d/usb/25-fm350-init` | Modem works only via USB/RNDIS; the PCIe T7xx driver is blacklisted. |
 | **ModemManager disabled by default** | `my_files/etc-files/uci-defaults/99-disable-modemmanager` + copy lines in builders; `modemmanager` stays in defconfigs | MM races the ATC proto for the modem's single AT engine (boot-order dependent: interface gets an IP but RX=0). Package kept installed; users re-enable with `/etc/init.d/modemmanager enable`. |
 | **nikki (mihomo) VLESS client** | `my_files/nikki/**`, `my_files/mihomo-meta/**`, `my_files/luci-app-nikki/**` (vendored into feeds; pinned to nikki upstream `6060401`), defconfig block (kmod-nft-tproxy/-socket, kmod-inet-diag, kmod-dummy, kmod-tun, yq, ca-bundle) | mihomo compiles from Go source at build time. Inactive until a subscription is added (LuCI → Services → Nikki). |
+| **zashboard dashboard** | `my_files/nikki/files/nikki.conf` → `option 'ui_url'` | nikki already defaults its `external-ui-url` to zashboard. Fork change: **pinned to `v3.12.1` and `dist.zip`** (self-contained fonts) instead of upstream's `latest`/`dist-cdn-fonts.zip` (CDN fonts fail on a spotty modem link). It downloads on demand via LuCI → Services → Nikki → **Update Dashboard**, then **Open Dashboard** (served at `http://<lan-ip>:9090/ui/`). Bump the version in this one line to update. |
 | **zapret (nftables) deps baked** | defconfig: `kmod-nft-queue` (+`kmod-nft-compat`, coreutils-sort/sleep, gzip) | kmods can't be installed from public feeds on a self-built image (vermagic). Install zapret with `FWTYPE=nftables`. |
 | build-local.ps1 | repo root | Local WSL2 build wrapper; branch defaults to `main`; no pins (builders self-pin). |
 | README FM350 section | `README.md` → "Fibocom FM350-GL 5G modem (this fork)" | Re-add after upstream README changes if lost. |
@@ -42,7 +43,33 @@ Keep the fork as **one delta commit on top of upstream main** where possible:
 | **No Docker** | All `CONFIG_PACKAGE_docker*/containerd/runc` + `CONFIG_DOCKER_*` removed from `configs/my_defconfig-*`. Upstream keeps docker (split per-medium) — on merge, re-remove. |
 | **No strongSwan/IPsec** | All `strongswan*`, `kmod-ipsec*`, `kmod-ipt-ipsec`, `iptables-mod-ipsec`, `CONFIG_STRONGSWAN_*` removed. Remote access is WireGuard / self-hosted mesh instead. |
 
-## 5. Post-merge validation checklist
+## 5. Build version pinning (build info variables)
+
+Base source commits live in **`build-versions.env`** (introduced upstream — the
+single source of truth for the OpenWrt + MTK SDK pins, read by CI's "Load build
+versions" step and defaulted by the builder scripts):
+
+```
+OPENWRT_COMMIT=6dead2869209f4ff9825f3169c129c5ef04f6273   # openwrt-25.12 HEAD, 2026-06-28
+MTK_COMMIT=13f39a7448764466f0ab5eb290fdefd9a9d2335b       # github git01 HEAD,  2026-06-28
+```
+
+- **We track upstream's pins as-is** (do not fork these unless a base bump breaks
+  the FM350 delta). To pin the fork to a different base, edit `build-versions.env`
+  and the matching `${OPENWRT_COMMIT:-...}` / `git checkout` defaults in the
+  builder scripts (both must agree — CI reads the env, a bare builder run reads
+  its own default).
+- The builders clone the pinned OpenWrt + MTK feeds themselves (github git01,
+  not a tarball cache).
+- **Fork change — `build-local.ps1`:** removed its own hardcoded
+  `OPENWRT_COMMIT`/`MTK_COMMIT` and the `repo-cache` tar logic; it now just
+  clones the repo (branch defaults to **`main`**) and runs the builder, which
+  self-pins. Keeps the local WSL2 build in sync with CI automatically.
+- **Other pinned versions in the fork** (bump deliberately, they are not in
+  `build-versions.env`): nikki `6060401` (`my_files/*/Makefile` source refs),
+  zashboard `v3.12.1` (`my_files/nikki/files/nikki.conf`).
+
+## 6. Post-merge validation checklist
 
 ```sh
 # 1. 471 -> 481 apply cleanly (reconstruct defenvs, then):
