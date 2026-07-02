@@ -434,6 +434,8 @@ For new builds, **BPI-R4 8 GB RAM rev 1.2+** is recommended.
 
 ## Fibocom FM350-GL 5G modem (this fork)
 
+> Full fork-vs-upstream delta and merge rules: [FORK-DELTA.md](FORK-DELTA.md)
+
 > **This fork ([Clientik/bpi-r4-deploy](https://github.com/Clientik/bpi-r4-deploy)) adds Fibocom
 > FM350-GL 5G modem support** on top of [woziwrt/bpi-r4-deploy](https://github.com/woziwrt/bpi-r4-deploy).
 > Everything above matches upstream. The fork delta: PCIe2 disable (patches `480`/`481`),
