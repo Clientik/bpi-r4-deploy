@@ -432,6 +432,72 @@ For new builds, **BPI-R4 8 GB RAM rev 1.2+** is recommended.
 
 ---
 
+## Fibocom FM350-GL 5G modem (this fork)
+
+> **This fork ([Clientik/bpi-r4-deploy](https://github.com/Clientik/bpi-r4-deploy)) adds Fibocom
+> FM350-GL 5G modem support** on top of [woziwrt/bpi-r4-deploy](https://github.com/woziwrt/bpi-r4-deploy).
+> Everything above matches upstream. The fork delta: PCIe2 disable (patches `480`/`481`),
+> the `atc-fib-fm350_gl` proto + `luci-proto-atc`, the `kmod-mtk-t7xx` blacklist and USB
+> hotplug init, ModemManager disabled by default, the nikki (mihomo) proxy client, and
+> zapret nftables deps baked in. Docker and strongSwan are removed from the images.
+
+The FM350-GL is supported in **USB/RNDIS mode** via the `atc-fib-fm350_gl` package.
+
+### How it works
+
+The M.2 Key-B slot (CN16) connects to both PCIe2 and USB lines. The FM350-GL picks its mode at hardware level based on whether a PCIe link is detected at boot:
+
+- **PCIe2 active** -> T7xx/PCIe mode -> MBIM protocol
+- **PCIe2 disabled** -> USB lines -> RNDIS protocol -> configured via AT commands
+
+By default this build disables PCIe2 so the modem works out of the box in USB/RNDIS mode.
+
+### Toggle PCIe2 via U-Boot console
+
+PCIe2 is switched by adding/removing the `nopcie2` overlay in `bootconf_extra`.
+This build also carries the `leds` overlay - keep it when toggling.
+
+Default (USB/RNDIS): `bootconf_extra=...#mt7988a-bananapi-bpi-r4-leds#mt7988a-bananapi-bpi-r4-nopcie2`
+
+Interrupt boot over serial, then:
+
+```
+# enable PCIe2 (MBIM mode) - drop only the nopcie2 overlay:
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-leds
+saveenv
+# restore USB/RNDIS (default):
+setenv bootconf_extra mt7988a-bananapi-bpi-r4-leds#mt7988a-bananapi-bpi-r4-nopcie2
+saveenv
+```
+
+> NAND: prepend `mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#` to the value. After saveenv, do a full power cycle.
+
+### Network interface setup (LuCI)
+
+Create a WAN interface with protocol **ATC** and device `/dev/ttyUSB2` (or whichever ttyUSB answers `AT`). The `atc-fib-fm350_gl` script configures the modem and brings up the RNDIS interface automatically.
+
+### Known issues & tips
+
+- **ModemManager is disabled by default.** It races the ATC proto for the modem's
+  single AT engine (interface gets an IP but RX stays 0). Re-enable if you prefer it:
+  `/etc/init.d/modemmanager enable && /etc/init.d/modemmanager start`.
+
+- **Use separate ttyUSB ports for data vs. internet** - e.g. modemdata polling on
+  `ttyUSB1`, the ATC internet interface on `ttyUSB3`. Two consumers on one port
+  give `CME ERROR` / overlapping replies.
+
+- **After boot, if the modem interface misbehaves,** recreate (down/up) the ATC
+  interface ~10 minutes after boot.
+
+- **Zapret / DPI bypass - use nftables mode** (`FWTYPE=nftables`). The one
+  kernel-tied module it needs (`kmod-nft-queue`) is baked into this image;
+  the default iptables path pulls kmods that can't install on a custom build.
+
+- **nikki (mihomo) VLESS client** is included but inactive until you add a
+  subscription: LuCI -> Services -> Nikki.
+
+---
+
 ## Known behaviors
 
 ### Boot time

@@ -1,1 +1,9 @@
 * text=auto eol=lf
+
+# Scripts and patches: always LF, never BOM (BOM breaks busybox ash)
+*.sh   text eol=lf
+*.gcom text eol=lf
+*.patch text eol=lf
+my_files/atc-fib-fm350_gl/** text eol=lf
+my_files/modemdata-main/files/usr/share/modemdata/** text eol=lf
+my_files/etc-files/** text eol=lf

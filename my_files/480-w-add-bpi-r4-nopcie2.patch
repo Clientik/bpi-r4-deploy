@@ -1,0 +1,24 @@
+--- /dev/null
++++ b/arch/arm64/boot/dts/mediatek/mt7988a-bananapi-bpi-r4-nopcie2.dtso
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Disable PCIe2 (M.2 Key-B slot CN16) on BPI-R4.
++ * Required for modems like Fibocom FM350-GL to operate in USB mode.
++ *
++ * Uses fragment/target=<&pcie2> phandle form (same as working
++ * banana-pi forum overlay): compiles standalone via fixup and
++ * resolves at U-Boot runtime via base DTB __symbols__.
++ */
++/dts-v1/;
++/plugin/;
++/ {
++	compatible = "bananapi,bpi-r4", "mediatek,mt7988a";
++
++	fragment@0 {
++		target = <&pcie2>;
++		__overlay__ {
++			status = "disabled";
++		};
++	};
++};

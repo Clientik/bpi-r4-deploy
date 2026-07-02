@@ -37,8 +37,11 @@ bash ../mtk-openwrt-feeds/autobuild/unified/autobuild.sh filogic prepare
 
 ### ethernet/board LED (BPI-R4 standard) - leds overlay + uboot LED + filogic device + PHY trigger
 \cp -r ../my_files/470-w-add-bpi-r4-leds-overlay.patch target/linux/mediatek/patches-6.12/
+\cp -r ../my_files/480-w-add-bpi-r4-nopcie2.patch target/linux/mediatek/patches-6.12/
 \cp ../my_files/471-w-bpi-r4-led-uboot.patch package/boot/uboot-mediatek/patches/471-bpi-r4-led-uboot.patch
+\cp ../my_files/481-w-add-bpi-r4-nopcie2-env.patch package/boot/uboot-mediatek/patches/481-add-bpi-r4-nopcie2-env.patch
 sed -i 's/mt7988a-bananapi-bpi-r4-nvme$/mt7988a-bananapi-bpi-r4-nvme mt7988a-bananapi-bpi-r4-leds/' target/linux/mediatek/image/filogic.mk
+sed -i 's/mt7988a-bananapi-bpi-r4-leds$/& mt7988a-bananapi-bpi-r4-nopcie2/' target/linux/mediatek/image/filogic.mk
 echo "CONFIG_LED_TRIGGER_PHY=y" >> target/linux/mediatek/filogic/config-6.12
 
 \cp ../my_files/arm-trusted-firmware-mediatek-Makefile package/boot/arm-trusted-firmware-mediatek/Makefile
@@ -65,6 +68,16 @@ mkdir -p files/etc/init.d
 chmod +x files/etc/init.d/mtk-led-fix
 \cp ../my_files/etc-files/uci-defaults/95-mtk-led-fix-enable files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/95-mtk-led-fix-enable
+# FM350-GL: modem is disabled by default via ModemManager race - ship it disabled
+\cp ../my_files/etc-files/uci-defaults/99-disable-modemmanager files/etc/uci-defaults/
+chmod +x files/etc/uci-defaults/99-disable-modemmanager
+# FM350-GL: blacklist PCIe T7xx driver - modem works only via USB/RNDIS
+mkdir -p files/etc/modules.d
+\cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/
+# FM350-GL: hotplug to restart network when the modem USB device appears
+mkdir -p files/etc/hotplug.d/usb
+\cp ../my_files/etc-files/hotplug.d/usb/25-fm350-init files/etc/hotplug.d/usb/
+chmod +x files/etc/hotplug.d/usb/25-fm350-init
 
 # SD auto-expand: grow production + fitrw f2fs to fill the SD card on first boot (SD-only, guarded)
 mkdir -p files/lib/preinit
@@ -85,6 +98,13 @@ chmod +x files/root/install-dir/install-emmc.sh
 \cp ../my_files/bpi-r4-install/install-nvme-unifi.sh files/root/install-dir/install-nvme-unifi.sh
 chmod +x files/root/install-dir/install-nvme-unifi.sh
 
+# FM350-GL: atc proto vendored locally (no external feed needed)
+\cp -r ../my_files/atc-fib-fm350_gl/ feeds/packages/net/atc-fib-fm350_gl
+\cp -r ../my_files/luci-proto-atc feeds/luci/applications/luci-proto-atc
+# nikki (mihomo) VLESS client, vendored (pinned nikki upstream 6060401)
+\cp -r ../my_files/mihomo-meta feeds/packages/net/mihomo-meta
+\cp -r ../my_files/nikki feeds/packages/net/nikki
+\cp -r ../my_files/luci-app-nikki feeds/luci/applications/luci-app-nikki
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
