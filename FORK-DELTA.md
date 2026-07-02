@@ -24,6 +24,18 @@ Keep the fork as **one delta commit on top of upstream main** where possible:
 
 ## 3. Fork-only features — keep OUR side, upstream does not have these
 
+> **Supported builders.** The FM350 delta (defconfig selections **and** the
+> matching `\cp ... feeds/...` copy blocks) lives ONLY in the two builders CI
+> and `build-local.ps1` actually run: **`builder-wifimgr-universal.sh`**
+> (`my_defconfig-wifimgr-universal`) and **`builder-wired-universal.sh`**
+> (`my_defconfig-wired-universal`). The other R4 variant builders
+> (4gb/8gb-standard, universal, wired, wifimgr-inline) are upstream-plain minus
+> Docker/strongSwan — they must NOT select FM350 packages, because they do not
+> vendor them into feeds. **Rule: a defconfig may select an FM350 package only
+> if its builder copies that package into `feeds/` (see checklist 5b).** The
+> BPI-R4 Pro builders (`builder-pro-8x*`, `my_defconfig-8x-full`) are a different
+> board and carry no FM350 delta at all.
+
 | Component | Files | Notes |
 |---|---|---|
 | **PCIe2 disable (FM350 USB/RNDIS mode)** | `my_files/480-w-add-bpi-r4-nopcie2.patch` (DT overlay), `my_files/481-w-add-bpi-r4-nopcie2-env.patch` (U-Boot env: `bootconf_extra += #nopcie2`), copy lines + `sed` (append `nopcie2` to `DEVICE_DTS_OVERLAY` after upstream's `leds` sed) in the two universal builders | **481 applies ON TOP of upstream's 471** and carries 471's post-patch lines as context (incl. per-medium phy2 values). ⚠️ If upstream changes `471-w-bpi-r4-led-uboot.patch` or the defenvs, re-generate 481's contexts and re-run the dry-run check. |
@@ -80,16 +92,27 @@ patch -p1 --dry-run < my_files/481-w-add-bpi-r4-nopcie2-env.patch   # on top of 
 # 2. product.sh must be the sysfs version (NO gcom):
 grep -q getdevicevendorproduct my_files/modemdata-main/files/usr/share/modemdata/product.sh && echo OK
 
-# 3. fork packages present in all defconfigs (expect 8 each):
+# 3. fork FM350 packages live in EXACTLY the two supported defconfigs
+#    (my_defconfig-wifimgr-universal + my_defconfig-wired-universal) - expect 2:
 for p in atc-fib-fm350_gl luci-proto-atc nikki mihomo-meta kmod-nft-queue mdio-tools; do
   printf "%s: " $p; grep -l "CONFIG_PACKAGE_$p=y" configs/my_defconfig-* | wc -l; done
 
 # 4. fork removals still hold (expect 0):
 grep -lE "CONFIG_DOCKER_|dockerd=y|strongswan" configs/my_defconfig-* | wc -l
 
-# 5. builders (the two CI uses) still carry the fork blocks:
+# 5. builders (the two CI/build-local uses) still carry the fork blocks:
 for f in builder-wifimgr-universal.sh builder-wired-universal.sh; do
   grep -c "480-w-add-bpi-r4-nopcie2\|481-add-bpi-r4-nopcie2\|nopcie2/' target\|99-disable-modemmanager\|atc-fib-fm350_gl\|my_files/nikki " $f; done
+
+# 5b. CONSISTENCY: no defconfig may SELECT an FM350 package unless its builder
+#     COPIES it into feeds. For every builder, its defconfig's nikki-count must
+#     equal the builder's nikki-copy-count (both 1, or both 0):
+for b in builder-*.sh; do
+  dc=$(grep -oE "my_defconfig-[a-z0-9-]+" "$b" | head -1)
+  printf "%-36s dc:%s copy:%s\n" "$b" \
+    "$(grep -c CONFIG_PACKAGE_nikki=y configs/$dc 2>/dev/null)" \
+    "$(grep -c 'my_files/nikki feeds' "$b")"; done
+#   (mismatch = the build will fail on a selected-but-unprovided package)
 
 # 6. full build (mihomo compiles from Go source — only a real build validates it)
 ```
