@@ -1,4 +1,4 @@
-# OpenWrt + UniFi Stack for Banana Pi BPI-R4 & BPI-R4 Pro 8X
+# OpenWrt + UniFi Stack for Banana Pi BPI-R4 & BPI-R4 Pro 8X SUPPORT FOR FM350-GL
 
 Run **OpenWrt** on Banana Pi BPI-R4 and **BPI-R4 Pro 8X** (MT7988A, Wi-Fi 7) with an optional **UniFi Protect + UniFi Network Application** stack — a cost-effective alternative to the Ubiquiti UNVR + Cloud Gateway combo.
 
