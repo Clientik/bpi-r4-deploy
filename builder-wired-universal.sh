@@ -71,6 +71,12 @@ chmod +x files/etc/uci-defaults/95-mtk-led-fix-enable
 # FM350-GL: modem is disabled by default via ModemManager race - ship it disabled
 \cp ../my_files/etc-files/uci-defaults/99-disable-modemmanager files/etc/uci-defaults/
 chmod +x files/etc/uci-defaults/99-disable-modemmanager
+# FM350-GL fork defaults: FB350 iface (ttyUSB3), modemdata bind (ttyUSB1), wan zone
+\cp ../my_files/etc-files/uci-defaults/99-fm350-defaults files/etc/uci-defaults/
+chmod +x files/etc/uci-defaults/99-fm350-defaults
+# mwan3 failover config (wired -> FB350)
+mkdir -p files/etc/config
+\cp ../my_files/etc-files/config/mwan3 files/etc/config/mwan3
 # FM350-GL: blacklist PCIe T7xx driver - modem works only via USB/RNDIS
 mkdir -p files/etc/modules.d
 \cp ../my_files/etc-files/modules.d/mtk-t7xx-blacklist files/etc/modules.d/

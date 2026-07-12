@@ -8,6 +8,9 @@ what is fork-only, and which side must win on conflict.
 Keep the fork as **one delta commit on top of upstream main** where possible:
 `git fetch upstream && git rebase upstream/main` and re-validate (see checklist).
 
+> Narrative "why" behind each change (indexed decision log):
+> **[docs/CHANGELOG-fork.md](docs/CHANGELOG-fork.md)**.
+
 ## 1. Already merged upstream — take THEIR side on conflict
 
 | Component | Files | Notes |
@@ -44,6 +47,8 @@ Keep the fork as **one delta commit on top of upstream main** where possible:
 | **nikki (mihomo) VLESS client** | `my_files/nikki/**`, `my_files/mihomo-meta/**`, `my_files/luci-app-nikki/**` (vendored into feeds; pinned to nikki upstream `6060401`), defconfig block (kmod-nft-tproxy/-socket, kmod-inet-diag, kmod-dummy, kmod-tun, yq, ca-bundle) | mihomo compiles from Go source at build time. Inactive until a subscription is added (LuCI → Services → Nikki). |
 | **zashboard dashboard** | `my_files/nikki/files/nikki.conf` → `option 'ui_url'` | nikki already defaults its `external-ui-url` to zashboard. Fork change: **pinned to `v3.12.1` and `dist.zip`** (self-contained fonts) instead of upstream's `latest`/`dist-cdn-fonts.zip` (CDN fonts fail on a spotty modem link). It downloads on demand via LuCI → Services → Nikki → **Update Dashboard**, then **Open Dashboard** (served at `http://<lan-ip>:9090/ui/`). Bump the version in this one line to update. |
 | **zapret (nftables) deps baked** | defconfig: `kmod-nft-queue` (+`kmod-nft-compat`, coreutils-sort/sleep, gzip) | kmods can't be installed from public feeds on a self-built image (vermagic). Install zapret with `FWTYPE=nftables`. |
+| **FM350 first-boot defaults** | `my_files/etc-files/uci-defaults/99-fm350-defaults` (copied by the two builders) | Seeds on a clean image: `network.FB350` (ATC on `/dev/ttyUSB3`, no APN, delay 15) added to the `wan` firewall zone; and a modemdata `defmodems.fb350` binding (`serial`/sms_tool) polling status on `/dev/ttyUSB1` bound to `FB350`. Data (`ttyUSB3`) and status (`ttyUSB1`) are on separate ports so they don't collide on the single AT engine. Additive (does not touch lan/wan). |
+| **mwan3 WAN failover** | `my_files/etc-files/config/mwan3` (shipped as `/etc/config/mwan3`); defconfig `mwan3` + `luci-app-mwan3` | Wired `wan` = metric 1 (primary), `FB350` = metric 2 (backup). track_ip `1.1.1.1`/`8.8.8.8`, fail after 3×5 s → fail over to the 5G modem, back when wired recovers. Static file overrides the mwan3 package's example config. |
 | build-local.ps1 | repo root | Local WSL2 build wrapper; branch defaults to `main`; no pins (builders self-pin). |
 | README FM350 section | `README.md` → "Fibocom FM350-GL 5G modem (this fork)" | Re-add after upstream README changes if lost. |
 | .gitattributes LF rules | bottom block (`*.sh`, `*.gcom`, `*.patch`, atc/modemdata/etc-files → `eol=lf`) | BOM/CRLF breaks busybox ash. |
@@ -94,8 +99,13 @@ grep -q getdevicevendorproduct my_files/modemdata-main/files/usr/share/modemdata
 
 # 3. fork FM350 packages live in EXACTLY the two supported defconfigs
 #    (my_defconfig-wifimgr-universal + my_defconfig-wired-universal) - expect 2:
-for p in atc-fib-fm350_gl luci-proto-atc nikki mihomo-meta kmod-nft-queue mdio-tools; do
+for p in atc-fib-fm350_gl luci-proto-atc nikki mihomo-meta kmod-nft-queue mdio-tools mwan3 luci-app-mwan3; do
   printf "%s: " $p; grep -l "CONFIG_PACKAGE_$p=y" configs/my_defconfig-* | wc -l; done
+
+# 3c. FM350 default artifacts present + copied by the two builders:
+ls my_files/etc-files/uci-defaults/99-fm350-defaults my_files/etc-files/config/mwan3
+for f in builder-wifimgr-universal.sh builder-wired-universal.sh; do
+  grep -c "99-fm350-defaults files\|config/mwan3" "$f"; done   # expect 2 each
 
 # 4. fork removals still hold (expect 0):
 grep -lE "CONFIG_DOCKER_|dockerd=y|strongswan" configs/my_defconfig-* | wc -l

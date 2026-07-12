@@ -1,0 +1,54 @@
+#!/bin/sh
+# FM350-GL fork defaults (first boot). Additive - does not clobber lan/wan.
+#
+# Sets up, out of the box:
+#   - network 'FB350': ATC proto on /dev/ttyUSB3 (no APN -> modem's default),
+#     in the 'wan' firewall zone (NAT + WAN treatment) -> internet via modem.
+#   - modemdata: a ready binding that polls status on /dev/ttyUSB1 (a SEPARATE
+#     port from the data port ttyUSB3, so status polling never fights the data
+#     session on the FM350's single AT engine).
+#   - mwan3 failover comes from /etc/config/mwan3 (shipped as a file).
+#
+# Runtime-editable afterwards; this only seeds sane defaults on a clean image.
+
+. /lib/functions.sh
+
+# --- 1. FB350 ATC interface (data on ttyUSB3, no APN) ------------------------
+if ! uci -q get network.FB350 >/dev/null; then
+	uci -q batch <<-EOF
+		set network.FB350=interface
+		set network.FB350.proto='atc'
+		set network.FB350.device='/dev/ttyUSB3'
+		set network.FB350.delay='15'
+	EOF
+fi
+
+# --- 2. Put FB350 in the 'wan' firewall zone --------------------------------
+wanzone=$(uci show firewall 2>/dev/null | awk -F. "/\.name='wan'\$/{print \$2; exit}")
+if [ -n "$wanzone" ]; then
+	if ! uci -q get firewall."$wanzone".network | tr ' ' '\n' | grep -qx FB350; then
+		uci add_list firewall."$wanzone".network='FB350'
+	fi
+fi
+
+# --- 3. modemdata: ready binding, status polling on ttyUSB1 -----------------
+# defmodems.fb350 = serial (AT via sms_tool), comm_port ttyUSB1, iface FB350.
+if ! uci -q get defmodems.fb350 >/dev/null; then
+	uci -q batch <<-EOF
+		set defmodems.fb350=defmodems
+		set defmodems.fb350.modem='Fibocom FM350-GL'
+		set defmodems.fb350.user_desc='FM350-GL'
+		set defmodems.fb350.modemdata='serial'
+		set defmodems.fb350.comm_port='/dev/ttyUSB1'
+		set defmodems.fb350.comm_serial='/dev/ttyUSB1'
+		set defmodems.fb350.network='FB350'
+	EOF
+fi
+uci -q get defmodems.general >/dev/null || uci set defmodems.general=general
+[ -n "$(uci -q get defmodems.general.main_modem)" ] || uci set defmodems.general.main_modem='fb350'
+
+uci -q commit network
+uci -q commit firewall
+uci -q commit defmodems
+
+exit 0

@@ -493,3 +493,6 @@ CONFIG_PACKAGE_ca-bundle=y
 CONFIG_PACKAGE_mihomo-meta=y
 CONFIG_PACKAGE_nikki=y
 CONFIG_PACKAGE_luci-app-nikki=y
+# WAN failover: wired -> FB350 (FM350 5G) when wired loses internet
+CONFIG_PACKAGE_mwan3=y
+CONFIG_PACKAGE_luci-app-mwan3=y

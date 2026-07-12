@@ -474,9 +474,39 @@ saveenv
 
 > NAND: prepend `mt7988a-bananapi-bpi-r4-spim-nand#mt7988a-bananapi-bpi-r4-emmc#` to the value. After saveenv, do a full power cycle.
 
+### Defaults set up out of the box (this fork)
+
+A first-boot `uci-defaults` script seeds a ready configuration — no manual setup needed:
+
+- **`FB350` interface** — protocol **ATC** on **`/dev/ttyUSB3`**, no APN (the modem
+  uses its own default), `delay 15` for boot init. Added to the **`wan` firewall
+  zone** (NAT), so internet flows through the modem.
+- **modemdata binding** — a `defmodems` entry (`serial`/sms_tool) polling status
+  on **`/dev/ttyUSB1`** and bound to `FB350`. Status polling (`ttyUSB1`) is on a
+  **separate port** from the data session (`ttyUSB3`) so they never fight the
+  modem's single AT engine (that overlap is what caused `+CME ERROR`).
+- All of the above is editable afterwards in LuCI; the script only seeds a clean image.
+
+> Different ttyUSB ports on your unit? Adjust `network.FB350.device` and
+> `defmodems.fb350.comm_port` accordingly (whichever answers `AT`).
+
+### Automatic WAN failover (mwan3)
+
+`mwan3` + `luci-app-mwan3` are included and pre-configured (`/etc/config/mwan3`):
+the **wired `wan` is primary** (metric 1), and **`FB350` is the backup** (metric 2).
+mwan3 pings `1.1.1.1` / `8.8.8.8` on the wired WAN; when it loses internet
+(3 failed checks × 5 s interval), traffic **fails over to the 5G modem**
+automatically, and switches back when the wired link recovers.
+
+Tune thresholds in **LuCI → Network → Load Balancing**, or `/etc/config/mwan3`
+(`track_ip`, `interval`, `down`/`up`).
+
 ### Network interface setup (LuCI)
 
-Create a WAN interface with protocol **ATC** and device `/dev/ttyUSB2` (or whichever ttyUSB answers `AT`). The `atc-fib-fm350_gl` script configures the modem and brings up the RNDIS interface automatically.
+The `FB350` ATC interface is created automatically (see *Defaults* above). If you
+prefer to set it up by hand, create a WAN interface with protocol **ATC** and the
+ttyUSB that answers `AT`; `atc-fib-fm350_gl` configures the modem and brings up
+the RNDIS interface.
 
 ### Known issues & tips
 
