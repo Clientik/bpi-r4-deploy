@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# BUMP 2026-06-28 (HW overeno na obou routerech; predchozi: 7b8ce1e / 42c9ff = 6.12.93):
-#   OpenWrt:  6dead2869209f4ff9825f3169c129c5ef04f6273  (openwrt-25.12 HEAD)
-#   MTK SDK:  13f39a7448764466f0ab5eb290fdefd9a9d2335b  (github git01 HEAD)
+# BUMP 2026-07-06 (main migration; predchozi git01 base: 13f39a74):
+#   OpenWrt:  6dead2869209f4ff9825f3169c129c5ef04f6273  (openwrt-25.12 HEAD, BEZE ZMENY)
+#   MTK SDK:  822c2f0603614e47ec8496571043431494fd2841  (MAIN HEAD; git01 mrazi -> MTK doporucil main)
 OPENWRT_COMMIT=${OPENWRT_COMMIT:-6dead2869209f4ff9825f3169c129c5ef04f6273}
 
 rm -rf openwrt
@@ -12,10 +12,9 @@ rm -rf mtk-openwrt-feeds
 git clone --branch openwrt-25.12 https://git.openwrt.org/openwrt/openwrt.git openwrt
 cd openwrt; git checkout ${OPENWRT_COMMIT}; cd -;
 
-# BUMP TEST 2026-06-23: tarball nahrazen cerstvym clone z MTK GitHub (vetev git01 = nase linie)
-#tar xzf /home/ipsec/mtk-feeds-cache.tar.gz
-git clone --branch git01 https://github.com/mediatek/mtk-openwrt-feeds mtk-openwrt-feeds
-( cd mtk-openwrt-feeds && git checkout 13f39a7448764466f0ab5eb290fdefd9a9d2335b )
+# 2026-07-06: migrated git01 -> main (git01 frozen; MTK recommends main). Single source of truth.
+git clone --branch main https://github.com/mediatek/mtk-openwrt-feeds mtk-openwrt-feeds
+( cd mtk-openwrt-feeds && git checkout 822c2f0603614e47ec8496571043431494fd2841 )
 
 
 \cp -r my_files/999-sfp-10-additional-quirks.patch mtk-openwrt-feeds/25.12/files/target/linux/mediatek/patches-6.12
