@@ -20,11 +20,14 @@ config interface 'FB350'
 	list track_ip '1.1.1.1'
 	list track_ip '8.8.8.8'
 	option reliability '1'
-	option count '1'
-	option timeout '2'
-	option interval '5'
-	option down '3'
-	option up '3'
+	# Tolerant tracking for mobile internet: 3 pings, 5 s timeout, checked
+	# every 10 s, down only after 5 fails (~50 s), up after 2 - avoids false
+	# "modem down" on transient cellular latency/handover.
+	option count '3'
+	option timeout '5'
+	option interval '10'
+	option down '5'
+	option up '2'
 
 config member 'wan_m1'
 	option interface 'wan'
