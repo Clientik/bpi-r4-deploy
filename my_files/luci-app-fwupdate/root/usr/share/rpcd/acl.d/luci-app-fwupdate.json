@@ -1,0 +1,17 @@
+{
+	"luci-app-fwupdate": {
+		"description": "Firmware OTA update (GitHub releases of this fork)",
+		"read": {
+			"file": {
+				"/usr/sbin/fw-update": [ "exec" ]
+			},
+			"uci": [ "fwupdate" ]
+		},
+		"write": {
+			"file": {
+				"/usr/sbin/fw-update": [ "exec" ]
+			},
+			"uci": [ "fwupdate" ]
+		}
+	}
+}

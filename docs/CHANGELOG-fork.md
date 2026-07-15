@@ -19,6 +19,7 @@ this file is the narrative index.
 - [D10. Rebased onto new upstream base](#d10-rebase-upstream)
 - [D11. FM350 packages only in the two supported builders](#d11-supported-builders)
 - [D12. FM350 first-boot defaults + mwan3 failover](#d12-defaults-mwan3)
+- [D13. fwupdate — OTA updater from this fork's GitHub](#d13-fwupdate)
 
 ---
 
@@ -98,3 +99,17 @@ build-local use). Consistency rule + checklist 5b in FORK-DELTA.
 **What:** first-boot `99-fm350-defaults` seeds `FB350` (ATC, ttyUSB3, no APN) in the
 wan zone + modemdata binding on ttyUSB1 (status port separate from data port);
 `mwan3` + luci pre-configured (`/etc/config/mwan3`) for wired→FB350 failover.
+
+### D13. fwupdate
+**Why:** the LuCI "Attended Sysupgrade" page targets the OFFICIAL OpenWrt server —
+on this MTK-SDK fork it would build/flash a vanilla image without our custom
+packages. We want update checks against **this fork's own GitHub releases**
+(like BananaWRT does). User asked for it as a proper package, not loose scripts.
+**What:** two self-contained, easy-to-remove packages (vendored like nikki/atc):
+`fwupdate` (`/usr/sbin/fw-update` CLI: check/list/install + `/etc/config/fwupdate`)
+and `luci-app-fwupdate` (System → Firmware Update page). The builder stamps
+`/etc/fork-release` (repo/profile/commit/date); `fw-update` resolves the right
+release tag + `.itb` by RAM + build profile + PoE (override via uci or the LuCI
+variant list parsed from GitHub), compares the release date to the stamp, and
+sysupgrades (keeps settings). Removal is a one-block delete (see FORK-DELTA).
+Needs a build to package and a run to validate (like nikki/mihomo).

@@ -1,0 +1,112 @@
+#!/bin/sh
+# fw-update - OTA updater for this fork: checks the fork's GitHub releases for a
+# newer sysupgrade image (bpi-r4.itb) and installs it. Self-contained; reads the
+# build stamp /etc/fork-release and the UCI config /etc/config/fwupdate.
+#
+# Commands:
+#   fw-update check [--json]   report current vs latest for this variant
+#   fw-update list [--json]    list all release tags parsed from the repo
+#   fw-update install [tag]    download the .itb and sysupgrade (keep settings)
+#   fw-update install --dry-run [tag]   resolve + show URL, do not flash
+#
+# Loosely coupled: remove the fwupdate + luci-app-fwupdate packages and this
+# whole feature is gone. Nothing else depends on it.
+
+[ -f /etc/fork-release ] && . /etc/fork-release 2>/dev/null
+
+REPO="$(uci -q get fwupdate.main.repo)"; REPO="${REPO:-${FORK_REPO:-Clientik/bpi-r4-deploy}}"
+API="https://api.github.com/repos/$REPO"
+UA="fw-update/1.0 (+https://github.com/$REPO)"
+
+fetch() { curl -fsSL --max-time 25 -A "$UA" "$1" 2>/dev/null; }
+
+# --- resolve which release tag + asset fit THIS device ----------------------
+ram_gb() {
+	local kb; kb=$(sed -n 's/^MemTotal:[[:space:]]*\([0-9]*\).*/\1/p' /proc/meminfo)
+	[ "${kb:-0}" -gt 5000000 ] && echo 8 || echo 4
+}
+is_poe() { grep -qi 'poe' /proc/device-tree/model 2>/dev/null && echo 1 || echo 0; }
+
+resolve_tag() {
+	local t; t="$(uci -q get fwupdate.main.tag)"
+	[ -n "$t" ] && { echo "$t"; return; }              # user/override wins
+	local base="${FORK_PROFILE:-standard}"             # standard|wired (build stamp)
+	if [ "$(is_poe)" = 1 ]; then
+		case "$base" in wired) base="poe-wired";; *) base="poe";; esac
+	fi
+	echo "release-$(ram_gb)gb-${base}"
+}
+resolve_asset() {
+	local a; a="$(uci -q get fwupdate.main.asset)"
+	[ -n "$a" ] && { echo "$a"; return; }
+	[ "$(is_poe)" = 1 ] && echo "bpi-r4-poe.itb" || echo "bpi-r4.itb"
+}
+
+# published_at of a tag's release, and the asset download URL
+rel_date() { fetch "$API/releases/tags/$1" | jsonfilter -q -e '@.published_at'; }
+asset_url() {
+	fetch "$API/releases/tags/$1" | jsonfilter -q -e "@.assets[@.name=\"$2\"].browser_download_url"
+}
+
+cmd_check() {
+	local tag asset pub url newer
+	tag=$(resolve_tag); asset=$(resolve_asset)
+	local json; json=$(fetch "$API/releases/tags/$tag")
+	[ -z "$json" ] && { _out_err "cannot reach GitHub or tag '$tag' not found"; return 1; }
+	pub=$(echo "$json" | jsonfilter -q -e '@.published_at')
+	url=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].browser_download_url")
+	# ISO-8601 sorts lexicographically -> string compare is enough
+	if [ -n "$pub" ] && [ -n "$FORK_DATE" ] && [ "$pub" \> "$FORK_DATE" ]; then
+		newer=1; else newer=0; fi
+	if [ "$1" = "--json" ]; then
+		printf '{"repo":"%s","tag":"%s","asset":"%s","current":"%s","commit":"%s","latest":"%s","url":"%s","update":%s}\n' \
+			"$REPO" "$tag" "$asset" "${FORK_DATE:-unknown}" "${FORK_COMMIT:-unknown}" "${pub:-unknown}" "${url:-}" "$newer"
+	else
+		echo "Repo:      $REPO"
+		echo "Variant:   $tag  ($asset)"
+		echo "Installed: ${FORK_DATE:-unknown}  (${FORK_COMMIT:-unknown})"
+		echo "Latest:    ${pub:-unknown}"
+		[ "$newer" = 1 ] && echo "Status:    UPDATE AVAILABLE  ->  fw-update install" \
+		                 || echo "Status:    up to date"
+	fi
+}
+
+cmd_list() {
+	local json; json=$(fetch "$API/releases")
+	[ -z "$json" ] && { _out_err "cannot reach GitHub"; return 1; }
+	if [ "$1" = "--json" ]; then echo "$json" | jsonfilter -e '@[*].tag_name' | sed 's/.*/"&"/' | paste -sd, - | sed 's/^/[/;s/$/]/'
+	else
+		echo "Available releases (tag  -  published):"
+		local i=0
+		for tg in $(echo "$json" | jsonfilter -q -e '@[*].tag_name'); do
+			[ $i -ge 12 ] && break; i=$((i+1))
+			echo "  $tg  -  $(echo "$json" | jsonfilter -q -e "@[@.tag_name=\"$tg\"].published_at" | head -1)"
+		done
+	fi
+}
+
+cmd_install() {
+	local dry=0; [ "$1" = "--dry-run" ] && { dry=1; shift; }
+	local tag="${1:-$(resolve_tag)}" asset; asset=$(resolve_asset)
+	local url; url=$(asset_url "$tag" "$asset")
+	[ -z "$url" ] && { _out_err "asset '$asset' not found in '$tag'"; return 1; }
+	echo "Tag:   $tag"
+	echo "Asset: $asset"
+	echo "URL:   $url"
+	[ "$dry" = 1 ] && { echo "(dry-run, nothing written)"; return 0; }
+	echo "Downloading..."
+	rm -f /tmp/fw-update.itb
+	curl -fL --max-time 900 -A "$UA" -o /tmp/fw-update.itb "$url" || { _out_err "download failed"; return 1; }
+	[ "$(wc -c < /tmp/fw-update.itb)" -gt 1000000 ] || { _out_err "downloaded file too small"; rm -f /tmp/fw-update.itb; return 1; }
+	echo "Flashing with sysupgrade (settings kept). The router will reboot."
+	sysupgrade /tmp/fw-update.itb
+}
+
+_out_err() { echo "error: $*" >&2; }
+
+case "$1" in
+	check)   shift; cmd_check "$@" ;;
+	list)    shift; cmd_list "$@" ;;
+	install) shift; cmd_install "$@" ;;
+	*) echo "usage: fw-update {check [--json] | list [--json] | install [--dry-run] [tag]}" ;;
+esac

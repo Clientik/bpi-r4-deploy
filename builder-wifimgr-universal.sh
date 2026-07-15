@@ -128,6 +128,18 @@ chmod +x files/root/install-dir/install-nvme-unifi.sh
 \cp -r ../my_files/mihomo-meta feeds/packages/net/mihomo-meta
 \cp -r ../my_files/nikki feeds/packages/net/nikki
 \cp -r ../my_files/luci-app-nikki feeds/luci/applications/luci-app-nikki
+# ===== fwupdate OTA updater (REMOVABLE: delete this block + the 2 defconfig
+#       lines + my_files/fwupdate + my_files/luci-app-fwupdate) =====
+\cp -r ../my_files/fwupdate feeds/packages/utils/fwupdate
+\cp -r ../my_files/luci-app-fwupdate feeds/luci/applications/luci-app-fwupdate
+mkdir -p files/etc
+cat > files/etc/fork-release <<FORKEOF
+FORK_REPO=Clientik/bpi-r4-deploy
+FORK_PROFILE=standard
+FORK_COMMIT=$(git -C .. rev-parse --short HEAD 2>/dev/null || echo unknown)
+FORK_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+FORKEOF
+# ===== end fwupdate =====
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
