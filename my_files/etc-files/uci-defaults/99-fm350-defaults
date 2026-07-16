@@ -2,7 +2,6 @@
 # FM350-GL fork defaults (first boot). Additive - does not clobber lan/wan.
 #
 # Sets up, out of the box:
-#   - LAN subnet 192.168.10.0/24 (router 192.168.10.1) -> clients get 192.168.10.x.
 #   - network 'FB350': ATC proto on /dev/ttyUSB3 (no APN -> modem's default),
 #     in the 'wan' firewall zone (NAT + WAN treatment) -> internet via modem.
 #   - modemdata: a ready binding that polls status on /dev/ttyUSB1 (a SEPARATE
@@ -13,12 +12,6 @@
 # Runtime-editable afterwards; this only seeds sane defaults on a clean image.
 
 . /lib/functions.sh
-
-# --- 0. LAN subnet: clients get 192.168.10.x by default ---------------------
-# Only change the stock 192.168.1.1 -> respects a custom LAN IP if already set.
-if [ "$(uci -q get network.lan.ipaddr)" = "192.168.1.1" ]; then
-	uci set network.lan.ipaddr='192.168.10.1'
-fi
 
 # --- 1. FB350 ATC interface (data on ttyUSB3, no APN) ------------------------
 if ! uci -q get network.FB350 >/dev/null; then
