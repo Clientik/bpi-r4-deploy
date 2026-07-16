@@ -21,8 +21,14 @@ if ! uci -q get network.FB350 >/dev/null; then
 		set network.FB350.proto='atc'
 		set network.FB350.device='/dev/ttyUSB3'
 		set network.FB350.delay='15'
+		set network.FB350.metric='20'
 	EOF
 fi
+# mwan3 REQUIRES unique per-interface route metrics: without them both
+# default routes sit at metric 0 and bringing the modem up knocks the wired
+# wan offline (policy blackhole, traceroute !H). wan=10, FB350=20.
+[ -n "$(uci -q get network.wan.metric)" ] || uci -q set network.wan.metric='10'
+[ -n "$(uci -q get network.FB350.metric)" ] || uci -q set network.FB350.metric='20'
 
 # --- 2. Put FB350 in the 'wan' firewall zone --------------------------------
 wanzone=$(uci show firewall 2>/dev/null | awk -F. "/\.name='wan'\$/{print \$2; exit}")

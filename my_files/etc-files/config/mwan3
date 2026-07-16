@@ -2,16 +2,22 @@ config globals 'globals'
 	option mmx_mask '0x3F00'
 
 # Primary: wired WAN. Backup: FB350 (FM350 5G modem).
+# NOTE: mwan3 requires a UNIQUE route metric per interface in
+# /etc/config/network (wan=10, FB350=20 - seeded by 99-fm350-defaults).
+# Without metrics both default routes collide at metric 0: bringing the modem
+# up knocks the wired wan "offline" and the policy blackholes (traceroute !H).
 config interface 'wan'
 	option enabled '1'
 	option family 'ipv4'
 	list track_ip '1.1.1.1'
 	list track_ip '8.8.8.8'
 	option reliability '1'
-	option count '1'
-	option timeout '2'
+	# Relaxed: 3 pings, 3 s timeout, down after 5 fails (~25 s) - a single
+	# lost ping doesn't flap the primary; recovery after 3 successes.
+	option count '3'
+	option timeout '3'
 	option interval '5'
-	option down '3'
+	option down '5'
 	option up '3'
 
 config interface 'FB350'
