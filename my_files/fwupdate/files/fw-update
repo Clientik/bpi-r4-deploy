@@ -4,10 +4,16 @@
 # build stamp /etc/fork-release and the UCI config /etc/config/fwupdate.
 #
 # Commands:
-#   fw-update check [--json]   report current vs latest for this variant
-#   fw-update list [--json]    list all release tags parsed from the repo
-#   fw-update install [tag]    download the .itb and sysupgrade (keep settings)
-#   fw-update install --dry-run [tag]   resolve + show URL, do not flash
+#   fw-update check [--json]     report current vs latest for this variant
+#   fw-update list [--json]      list release tags parsed from the repo
+#   fw-update install [tag]      download the .itb and sysupgrade (keep settings)
+#   fw-update install --dry-run  resolve + show URL, do not flash
+#   fw-update install --background [tag]   async: state in /tmp/fw-update.state
+#   fw-update status [--json]    progress of a background install (for LuCI poll)
+#
+# "Up to date" is decided by COMMIT (release target_commitish vs FORK_COMMIT):
+# the release publish time is always later than the image build time, so dates
+# alone would report a false "update available" for the very build you run.
 #
 # Loosely coupled: remove the fwupdate + luci-app-fwupdate packages and this
 # whole feature is gone. Nothing else depends on it.
@@ -16,9 +22,12 @@
 
 REPO="$(uci -q get fwupdate.main.repo)"; REPO="${REPO:-${FORK_REPO:-Clientik/bpi-r4-deploy}}"
 API="https://api.github.com/repos/$REPO"
-UA="fw-update/1.0 (+https://github.com/$REPO)"
+UA="fw-update/1.1 (+https://github.com/$REPO)"
+STATE=/tmp/fw-update.state
+IMG=/tmp/fw-update.itb
 
-fetch() { curl -fsSL --max-time 25 -A "$UA" "$1" 2>/dev/null; }
+# fail fast when GitHub is unreachable/blocked (no endless hang)
+fetch() { curl -fsSL --connect-timeout 15 --max-time 30 -A "$UA" "$1" 2>/dev/null; }
 
 # --- resolve which release tag + asset fit THIS device ----------------------
 ram_gb() {
@@ -42,30 +51,39 @@ resolve_asset() {
 	[ "$(is_poe)" = 1 ] && echo "bpi-r4-poe.itb" || echo "bpi-r4.itb"
 }
 
-# published_at of a tag's release, and the asset download URL
-rel_date() { fetch "$API/releases/tags/$1" | jsonfilter -q -e '@.published_at'; }
-asset_url() {
-	fetch "$API/releases/tags/$1" | jsonfilter -q -e "@.assets[@.name=\"$2\"].browser_download_url"
+# same build? compare FORK_COMMIT against the release's target_commitish
+# (prefix match either way - one of them is the short SHA)
+same_commit() { # $1 = target_commitish
+	[ -n "$1" ] && [ -n "$FORK_COMMIT" ] || return 1
+	case "$1" in "$FORK_COMMIT"*) return 0;; esac
+	case "$FORK_COMMIT" in "$1"*) return 0;; esac
+	return 1
 }
 
 cmd_check() {
-	local tag asset pub url newer
+	local tag asset pub url tc size newer
 	tag=$(resolve_tag); asset=$(resolve_asset)
 	local json; json=$(fetch "$API/releases/tags/$tag")
-	[ -z "$json" ] && { _out_err "cannot reach GitHub or tag '$tag' not found"; return 1; }
+	[ -z "$json" ] && { _out_err "cannot reach GitHub (blocked/offline?) or tag '$tag' not found"; return 1; }
 	pub=$(echo "$json" | jsonfilter -q -e '@.published_at')
+	tc=$(echo "$json" | jsonfilter -q -e '@.target_commitish')
 	url=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].browser_download_url")
-	# ISO-8601 sorts lexicographically -> string compare is enough
-	if [ -n "$pub" ] && [ -n "$FORK_DATE" ] && [ "$pub" \> "$FORK_DATE" ]; then
-		newer=1; else newer=0; fi
+	size=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].size")
+	if same_commit "$tc"; then
+		newer=0                                   # release built from our commit
+	elif [ -n "$pub" ] && [ -n "$FORK_DATE" ] && [ "$pub" \> "$FORK_DATE" ]; then
+		newer=1                                   # different commit + newer publish
+	else
+		newer=0
+	fi
 	if [ "$1" = "--json" ]; then
-		printf '{"repo":"%s","tag":"%s","asset":"%s","current":"%s","commit":"%s","latest":"%s","url":"%s","update":%s}\n' \
-			"$REPO" "$tag" "$asset" "${FORK_DATE:-unknown}" "${FORK_COMMIT:-unknown}" "${pub:-unknown}" "${url:-}" "$newer"
+		printf '{"repo":"%s","tag":"%s","asset":"%s","current":"%s","commit":"%s","latest":"%s","latest_commit":"%s","size":%s,"url":"%s","update":%s}\n' \
+			"$REPO" "$tag" "$asset" "${FORK_DATE:-unknown}" "${FORK_COMMIT:-unknown}" "${pub:-unknown}" "${tc:-unknown}" "${size:-0}" "${url:-}" "$newer"
 	else
 		echo "Repo:      $REPO"
 		echo "Variant:   $tag  ($asset)"
-		echo "Installed: ${FORK_DATE:-unknown}  (${FORK_COMMIT:-unknown})"
-		echo "Latest:    ${pub:-unknown}"
+		echo "Installed: ${FORK_DATE:-unknown}  (commit ${FORK_COMMIT:-unknown})"
+		echo "Latest:    ${pub:-unknown}  (commit ${tc:-unknown})"
 		[ "$newer" = 1 ] && echo "Status:    UPDATE AVAILABLE  ->  fw-update install" \
 		                 || echo "Status:    up to date"
 	fi
@@ -73,7 +91,7 @@ cmd_check() {
 
 cmd_list() {
 	local json; json=$(fetch "$API/releases")
-	[ -z "$json" ] && { _out_err "cannot reach GitHub"; return 1; }
+	[ -z "$json" ] && { _out_err "cannot reach GitHub (blocked/offline?)"; return 1; }
 	if [ "$1" = "--json" ]; then echo "$json" | jsonfilter -e '@[*].tag_name' | sed 's/.*/"&"/' | paste -sd, - | sed 's/^/[/;s/$/]/'
 	else
 		echo "Available releases (tag  -  published):"
@@ -85,21 +103,78 @@ cmd_list() {
 	fi
 }
 
+_state() { # phase [total] [msg]
+	{
+		echo "PHASE=$1"
+		[ -n "$2" ] && echo "TOTAL=$2"
+		[ -n "$3" ] && echo "MSG=$3"
+	} > "$STATE"
+}
+
+_do_install() { # $1 tag  (writes STATE; flashes at the end)
+	local tag="$1" asset url size json
+	asset=$(resolve_asset)
+	_state resolving
+	json=$(fetch "$API/releases/tags/$tag")
+	url=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].browser_download_url")
+	size=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].size")
+	[ -z "$url" ] && { _state error "" "asset '$asset' not found in '$tag' (GitHub unreachable?)"; return 1; }
+	_state downloading "${size:-0}"
+	rm -f "$IMG"
+	# connect fast-fail 15s; whole download capped at 15 min
+	if ! curl -fL --connect-timeout 15 --max-time 900 -A "$UA" -o "$IMG" "$url"; then
+		_state error "" "download failed (connection/timeout - GitHub may be blocked)"
+		rm -f "$IMG"; return 1
+	fi
+	[ "$(wc -c < "$IMG")" -gt 1000000 ] || { _state error "" "downloaded file too small"; rm -f "$IMG"; return 1; }
+	_state flashing "${size:-0}"
+	sysupgrade "$IMG"
+}
+
 cmd_install() {
-	local dry=0; [ "$1" = "--dry-run" ] && { dry=1; shift; }
+	local bg=0 dry=0
+	while [ $# -gt 0 ]; do case "$1" in
+		--background) bg=1; shift;;
+		--dry-run) dry=1; shift;;
+		*) break;;
+	esac; done
 	local tag="${1:-$(resolve_tag)}" asset; asset=$(resolve_asset)
-	local url; url=$(asset_url "$tag" "$asset")
-	[ -z "$url" ] && { _out_err "asset '$asset' not found in '$tag'"; return 1; }
-	echo "Tag:   $tag"
-	echo "Asset: $asset"
-	echo "URL:   $url"
-	[ "$dry" = 1 ] && { echo "(dry-run, nothing written)"; return 0; }
-	echo "Downloading..."
-	rm -f /tmp/fw-update.itb
-	curl -fL --max-time 900 -A "$UA" -o /tmp/fw-update.itb "$url" || { _out_err "download failed"; return 1; }
-	[ "$(wc -c < /tmp/fw-update.itb)" -gt 1000000 ] || { _out_err "downloaded file too small"; rm -f /tmp/fw-update.itb; return 1; }
+	if [ "$dry" = 1 ]; then
+		local url; url=$(fetch "$API/releases/tags/$tag" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].browser_download_url")
+		echo "Tag:   $tag"; echo "Asset: $asset"; echo "URL:   ${url:-NOT FOUND}"
+		echo "(dry-run, nothing written)"; return 0
+	fi
+	if [ "$bg" = 1 ]; then
+		( _do_install "$tag" >/dev/null 2>&1 ) &
+		echo "started (poll: fw-update status)"
+		return 0
+	fi
+	echo "Tag:   $tag"; echo "Asset: $asset"; echo "Downloading (progress below)..."
+	_do_install_fg "$tag"
+}
+
+_do_install_fg() { # interactive: curl progress bar in the terminal
+	local tag="$1" asset url; asset=$(resolve_asset)
+	url=$(fetch "$API/releases/tags/$tag" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].browser_download_url")
+	[ -z "$url" ] && { _out_err "asset '$asset' not found in '$tag' (GitHub unreachable?)"; return 1; }
+	rm -f "$IMG"
+	curl -fL --connect-timeout 15 --max-time 900 -A "$UA" --progress-bar -o "$IMG" "$url" \
+		|| { _out_err "download failed (connection/timeout - GitHub may be blocked)"; rm -f "$IMG"; return 1; }
+	[ "$(wc -c < "$IMG")" -gt 1000000 ] || { _out_err "downloaded file too small"; rm -f "$IMG"; return 1; }
 	echo "Flashing with sysupgrade (settings kept). The router will reboot."
-	sysupgrade /tmp/fw-update.itb
+	sysupgrade "$IMG"
+}
+
+cmd_status() {
+	local phase="idle" total=0 msg="" done=0
+	[ -f "$STATE" ] && . "$STATE" 2>/dev/null
+	phase="${PHASE:-idle}"; total="${TOTAL:-0}"; msg="${MSG:-}"
+	[ -f "$IMG" ] && done=$(wc -c < "$IMG")
+	if [ "$1" = "--json" ]; then
+		printf '{"phase":"%s","total":%s,"done":%s,"msg":"%s"}\n' "$phase" "${total:-0}" "${done:-0}" "$msg"
+	else
+		echo "phase: $phase  done: $done / $total  $msg"
+	fi
 }
 
 _out_err() { echo "error: $*" >&2; }
@@ -108,5 +183,6 @@ case "$1" in
 	check)   shift; cmd_check "$@" ;;
 	list)    shift; cmd_list "$@" ;;
 	install) shift; cmd_install "$@" ;;
-	*) echo "usage: fw-update {check [--json] | list [--json] | install [--dry-run] [tag]}" ;;
+	status)  shift; cmd_status "$@" ;;
+	*) echo "usage: fw-update {check [--json] | list [--json] | install [--dry-run|--background] [tag] | status [--json]}" ;;
 esac
