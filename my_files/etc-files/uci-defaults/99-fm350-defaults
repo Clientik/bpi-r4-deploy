@@ -7,6 +7,7 @@
 #   - modemdata: a ready binding that polls status on /dev/ttyUSB1 (a SEPARATE
 #     port from the data port ttyUSB3, so status polling never fights the data
 #     session on the FM350's single AT engine).
+#   - sms_tool_js (SMS/USSD/AT pages): all ports preset to /dev/ttyUSB1.
 #   - mwan3 failover comes from /etc/config/mwan3 (shipped as a file).
 #
 # Runtime-editable afterwards; this only seeds sane defaults on a clean image.
@@ -46,6 +47,17 @@ if ! uci -q get defmodems.fb350 >/dev/null; then
 fi
 uci -q get defmodems.general >/dev/null || uci set defmodems.general=general
 [ -n "$(uci -q get defmodems.general.main_modem)" ] || uci set defmodems.general.main_modem='fb350'
+
+# --- 4. SMS / USSD / AT (luci-app-sms-tool-js): preset ports to ttyUSB1 -----
+# Same STATUS port as modemdata - never the data port (ttyUSB3). Only fills
+# empty options, so a user-changed port is respected.
+if uci -q get sms_tool_js.@sms_tool_js[0] >/dev/null; then
+	for opt in readport sendport ussdport atport; do
+		[ -n "$(uci -q get sms_tool_js.@sms_tool_js[0].$opt)" ] || \
+			uci set sms_tool_js.@sms_tool_js[0].$opt='/dev/ttyUSB1'
+	done
+	uci -q commit sms_tool_js
+fi
 
 uci -q commit network
 uci -q commit firewall
