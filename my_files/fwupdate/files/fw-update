@@ -67,6 +67,16 @@ cmd_check() {
 	[ -z "$json" ] && { _out_err "cannot reach GitHub (blocked/offline?) or tag '$tag' not found"; return 1; }
 	pub=$(echo "$json" | jsonfilter -q -e '@.published_at')
 	tc=$(echo "$json" | jsonfilter -q -e '@.target_commitish')
+	# target_commitish is often just the branch name ("main"), not a SHA -> that
+	# made the commit check useless and fell back to dates (release publish time
+	# is always later than the build stamp -> false "update available"). Resolve
+	# the REAL commit the release tag points to via the git refs API.
+	local ref rtype rsha
+	ref=$(fetch "$API/git/refs/tags/$tag")
+	rtype=$(echo "$ref" | jsonfilter -q -e '@.object.type')
+	rsha=$(echo "$ref" | jsonfilter -q -e '@.object.sha')
+	[ "$rtype" = "tag" ] && rsha=$(fetch "$API/git/tags/$rsha" | jsonfilter -q -e '@.object.sha')
+	[ -n "$rsha" ] && tc="$rsha"
 	url=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].browser_download_url")
 	size=$(echo "$json" | jsonfilter -q -e "@.assets[@.name=\"$asset\"].size")
 	if same_commit "$tc"; then
